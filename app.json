@@ -12,7 +12,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.procrastin8r",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCalendarsUsageDescription": "Procrastin8r reads your calendar so classes, shifts and appointments can appear on your day as blocks. Events are copied onto your device only and nothing is written back to your calendar.",
@@ -27,7 +27,7 @@
         "backgroundColor": "#18181b"
       },
       "package": "app.procrastin8r",
-      "versionCode": 4
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
