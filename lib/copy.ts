@@ -267,7 +267,6 @@ export const copy = {
     title: "Log workout",
     templatesLabel: "saved templates · hold one to edit",
     newNamePlaceholder: "name it, e.g. Pull day",
-    newExPlaceholder: "exercises, comma separated",
     saveTemplate: "Save",
     updateTemplate: "Update",
     deleteTemplate: "Delete this template",
@@ -275,10 +274,21 @@ export const copy = {
     rest: "rest",
     weekSummary: (n: number) => `${n} sessions planned`,
     setsLabel: (name: string) => `${name} · nothing required`,
-    detailPlaceholder: "75 lb · last: 3×8",
+    noStat: "tap to add weight · reps",
     sets: (n: number) => `${n} sets`,
     voicePlaceholder: 'e.g. "bench, 135 for 8"',
     save: "Save",
+    editExercise: "edit",
+    deleteExercise: "delete",
+    renamePlaceholder: "rename it",
+    exerciseRenamed: "Renamed.",
+    exerciseRemoved: "Removed.",
+    exerciseAdded: "Added.",
+    addExercisePlaceholder: "add an exercise",
+    weightPlaceholder: "weight",
+    repsPlaceholder: "reps",
+    reps: "reps",
+    bodyweight: "bodyweight",
   },
 
   // ── the nudge card ──────────────────────────────────────────────────────
@@ -349,6 +359,7 @@ export const copy = {
   /** Screen-reader labels. Never shown on screen, but still read aloud. */
   a11y: {
     back: "Back",
+    done: "Done",
     addTask: "Add task",
     moveUp: "Move up",
     shrink: "Shrink to the first step",
@@ -373,5 +384,9 @@ export const copy = {
     unAdd: (name: string) => `Un-add ${name}`,
     lessSets: (name: string) => `One less set of ${name}`,
     moreSets: (name: string) => `One more set of ${name}`,
+    editExercise: (name: string) => `Edit ${name}`,
+    deleteExercise: (name: string) => `Delete ${name}`,
+    addExercise: "Add exercise",
+    toggleUnit: (unit: string) => `Switch from ${unit}`,
   },
 } as const;

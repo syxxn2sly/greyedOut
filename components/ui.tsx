@@ -1,8 +1,9 @@
-import { ReactNode } from "react";
+import { ReactNode, useRef } from "react";
 import {
-  Pressable, StyleProp, Text, TextInput, TextInputProps, TextProps, TextStyle,
+  Animated, Pressable, StyleProp, Text, TextInput, TextInputProps, TextProps, TextStyle,
   View, ViewProps, ViewStyle,
 } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/icon";
@@ -272,5 +273,105 @@ export function CheckCircleBtn({
       {done ? <Icon name="check" size={size * 0.54} color={t.accentRamp[200]} weight="bold" /> : null}
       {ghost && !done ? <Icon name="plus" size={size * 0.5} color={t.neutral[500]} /> : null}
     </Pressable>
+  );
+}
+
+/**
+ * Swipe left to reveal edit / delete for a row — used on individual workout
+ * exercises. Deleting has no undo dialog, matching the rest of the app's
+ * "effort counts, don't make them confirm everything" stance, but the row
+ * animates out so the change is never invisible.
+ */
+export function SwipeRow({
+  children,
+  onEdit,
+  onDelete,
+  editLabel,
+  deleteLabel,
+}: {
+  children: ReactNode;
+  onEdit?: () => void;
+  onDelete: () => void;
+  editLabel: string;
+  deleteLabel: string;
+}) {
+  const t = useTheme();
+  const ref = useRef<Swipeable>(null);
+
+  const renderActions = (
+    _progress: Animated.AnimatedInterpolation<number>,
+    dragX: Animated.AnimatedInterpolation<number>,
+  ) => {
+    const scale = dragX.interpolate({
+      inputRange: [-140, -70, 0],
+      outputRange: [1, 0.85, 0.6],
+      extrapolate: "clamp",
+    });
+    return (
+      <View style={{ flexDirection: "row", alignItems: "stretch", marginLeft: 8 }}>
+        {onEdit ? (
+          <Pressable
+            onPress={() => {
+              ref.current?.close();
+              onEdit();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={editLabel}
+            style={{
+              width: 60,
+              marginRight: 6,
+              borderRadius: radius.md,
+              borderWidth: 1,
+              borderColor: t.neutral[700],
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Animated.View style={{ transform: [{ scale }], alignItems: "center", gap: 3 }}>
+              <Icon name="pencil-simple" size={16} color={t.neutral[300]} />
+              <T size={9.5} color={t.neutral[400]}>
+                edit
+              </T>
+            </Animated.View>
+          </Pressable>
+        ) : null}
+        <Pressable
+          onPress={() => {
+            ref.current?.close();
+            onDelete();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={deleteLabel}
+          style={{
+            width: 60,
+            borderRadius: radius.md,
+            borderWidth: 1,
+            borderColor: "rgba(200,120,110,0.5)",
+            backgroundColor: "rgba(200,120,110,0.12)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Animated.View style={{ transform: [{ scale }], alignItems: "center", gap: 3 }}>
+            <Icon name="x" size={16} color="#c98c84" />
+            <T size={9.5} color="#c98c84">
+              delete
+            </T>
+          </Animated.View>
+        </Pressable>
+      </View>
+    );
+  };
+
+  return (
+    <Swipeable
+      ref={ref}
+      renderRightActions={renderActions}
+      friction={2}
+      rightThreshold={40}
+      overshootRight={false}
+    >
+      {children}
+    </Swipeable>
   );
 }

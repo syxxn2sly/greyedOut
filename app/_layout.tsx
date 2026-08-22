@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, router, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -59,10 +60,14 @@ function Shell() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <StoreProvider>
-        <Shell />
-      </StoreProvider>
-    </SafeAreaProvider>
+    // Swipe-to-reveal rows (workout exercises) need a gesture-handler root
+    // somewhere above them, or the horizontal pan silently does nothing.
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <StoreProvider>
+          <Shell />
+        </StoreProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

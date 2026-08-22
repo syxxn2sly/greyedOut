@@ -62,8 +62,15 @@ export type WorkoutTemplate = {
   name: string;
   icon: string;
   sub: string;
-  /** [id, display name, default detail line] */
+  /** [id, display name, fallback text shown until a real stat is logged] */
   ex: [string, string, string][];
+};
+
+/** Weight is optional — bodyweight exercises log reps with no number attached. */
+export type ExStat = {
+  weight: number | null;
+  unit: "lb" | "kg";
+  reps: number | null;
 };
 
 export type CustomBlock = {

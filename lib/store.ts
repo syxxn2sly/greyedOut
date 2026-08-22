@@ -16,15 +16,17 @@ import type {
   WeekPlan,
   WorkoutState,
   WorkoutTemplate,
+  ExStat,
 } from "@/lib/types";
 import type { ThemeName } from "@/constants/theme";
 
 /**
  * Bumped when the persisted shape changes incompatibly. v1 held the design's
- * demo seed and anchors keyed a1/a2/a3; nothing had shipped, so dropping those
- * blobs is cheaper and safer than migrating them.
+ * demo seed and anchors keyed a1/a2/a3. v2 held exDetails as free-text strings
+ * before weight/reps became structured. Testers lose today's numbers once on
+ * this update, which is cheaper than carrying a parser for the old format.
  */
-const STORAGE_KEY = "procrastin8r.state.v2";
+const STORAGE_KEY = "procrastin8r.state.v3";
 
 /**
  * Three hours between nudges. The old gap was seconds, which reads as nagging;
@@ -71,7 +73,7 @@ type State = {
   wSets: Record<string, number>;
   customTpls: WorkoutTemplate[];
   hiddenTpls: Record<string, boolean>;
-  exDetails: Record<string, string>;
+  exStats: Record<string, ExStat>;
   theme: ThemeName;
   focusTotalMin: number;
 };
@@ -128,7 +130,7 @@ const initial: State = {
   wSets: {},
   customTpls: [],
   hiddenTpls: {},
-  exDetails: {},
+  exStats: {},
   theme: "dark",
   focusTotalMin: 25,
 };

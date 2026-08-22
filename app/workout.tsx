@@ -3,12 +3,20 @@ import { Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 
 import { Icon } from "@/components/icon";
-import { Btn, Card, Field, IconBtn, Kicker, Screen, T, useTheme } from "@/components/ui";
+import { Btn, Card, Field, IconBtn, Kicker, Screen, SwipeRow, T, useTheme } from "@/components/ui";
 import { radius } from "@/constants/theme";
 import { copy } from "@/lib/copy";
 import { useStore } from "@/lib/store";
 import { BLANK_DETAIL, MAX_TEMPLATES, builtInTemplates, customIcons } from "@/lib/workouts";
-import type { WeekDay } from "@/lib/types";
+import type { ExStat, WeekDay } from "@/lib/types";
+
+/** How a stat reads when nothing is being typed into it. */
+const formatStat = (stat: ExStat | undefined) => {
+  if (!stat || (stat.weight == null && stat.reps == null)) return null;
+  const weight = stat.weight != null ? `${stat.weight}${stat.unit}` : copy.workout.bodyweight;
+  const reps = stat.reps != null ? `${stat.reps} ${copy.workout.reps}` : null;
+  return reps ? `${weight} · ${reps}` : weight;
+};
 
 const week: WeekDay[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 const todayKey: WeekDay = week[(new Date().getDay() + 6) % 7];
@@ -19,12 +27,16 @@ export default function Workout() {
 
   const [newOpen, setNewOpen] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newEx, setNewEx] = useState("");
-  /** null = the form is creating; an id = it is editing that template. */
+  /** null = the form is creating; an id = it is editing that template's name. */
   const [editingTpl, setEditingTpl] = useState<string | null>(null);
   const [voice, setVoice] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
-  const [editVal, setEditVal] = useState("");
+  const [editWeight, setEditWeight] = useState("");
+  const [editReps, setEditReps] = useState("");
+  const [editUnit, setEditUnit] = useState<"lb" | "kg">("lb");
+  const [renamingEx, setRenamingEx] = useState<string | null>(null);
+  const [renameVal, setRenameVal] = useState("");
+  const [newExName, setNewExName] = useState("");
 
   const templates = Object.fromEntries(
     Object.entries({
@@ -39,13 +51,14 @@ export default function Workout() {
     setNewOpen(false);
     setEditingTpl(null);
     setNewName("");
-    setNewEx("");
   };
 
   /**
-   * Editing reuses the create form rather than adding a second one. Exercise
-   * detail lines already logged against a name are carried over, so renaming
-   * the template does not wipe the numbers underneath it.
+   * The form only ever touches the template's name now. Exercises are added,
+   * renamed and deleted one at a time in the list below — a comma-separated
+   * text field asked people to retype the whole roster just to fix a typo,
+   * and silently dropped anything already logged against an exercise it
+   * couldn't match back up.
    */
   const openForEdit = (id: string) => {
     const tpl = templates[id];
@@ -53,16 +66,6 @@ export default function Workout() {
     setEditingTpl(id);
     setNewOpen(true);
     setNewName(tpl.name);
-    setNewEx(tpl.ex.map(([, name]) => name).join(", "));
-  };
-
-  const buildEx = (id: string): [string, string, string][] => {
-    const names = newEx.split(",").map((x) => x.trim()).filter(Boolean);
-    return names.map((n, i) => [
-      `${id}-${i}`,
-      n.charAt(0).toUpperCase() + n.slice(1),
-      s.exDetails[`${id}-${i}`] ?? BLANK_DETAIL,
-    ]);
   };
 
   const saveTemplate = () => {
@@ -70,18 +73,8 @@ export default function Workout() {
     if (!name) return;
 
     if (editingTpl) {
-      const ex = buildEx(editingTpl);
       s.update({
-        customTpls: s.customTpls.map((c) =>
-          c.id === editingTpl
-            ? {
-                ...c,
-                name,
-                sub: ex.length ? `${ex.length} ${ex.length === 1 ? "lift" : "lifts"} · yours` : "yours",
-                ex: ex.length ? ex : [[`${editingTpl}-0`, name, "log it your way"]],
-              }
-            : c,
-        ),
+        customTpls: s.customTpls.map((c) => (c.id === editingTpl ? { ...c, name } : c)),
       });
       closeForm();
       s.cheer(copy.toast.templateUpdated);
@@ -90,7 +83,6 @@ export default function Workout() {
 
     if (!canAdd) return;
     const id = `c${Date.now()}`;
-    const ex = buildEx(id);
     s.update({
       customTpls: [
         ...s.customTpls,
@@ -99,14 +91,68 @@ export default function Workout() {
           custom: true,
           name,
           icon: customIcons[s.customTpls.length % customIcons.length],
-          sub: ex.length ? `${ex.length} ${ex.length === 1 ? "lift" : "lifts"} · yours` : "yours",
-          ex: ex.length ? ex : [[`${id}-0`, name, "log it your way"]],
+          sub: "yours",
+          ex: [],
         },
       ],
       wTemplate: id,
     });
     closeForm();
     s.cheer(copy.toast.templateSaved);
+  };
+
+  /**
+   * The built-in templates' exercises live in code (lib/workouts.ts), not
+   * state, so there's nothing to update directly. The first edit, add or
+   * delete on one copies it into customTpls under the same id — which,
+   * because the merge in `templates` spreads built-ins first and customTpls
+   * second, makes the copy override the built-in from then on. Deleting that
+   * override later falls straight back to the original rather than losing it.
+   */
+  const withFork = (id: string, apply: (ex: [string, string, string][]) => [string, string, string][]) => {
+    const existing = s.customTpls.find((c) => c.id === id);
+    const base = existing ?? { ...templates[id], id };
+    const ex = apply(base.ex);
+    const next = {
+      ...base,
+      custom: true,
+      ex,
+      sub: `${ex.length} ${ex.length === 1 ? "lift" : "lifts"} · yours`,
+    };
+    s.update({
+      customTpls: existing
+        ? s.customTpls.map((c) => (c.id === id ? next : c))
+        : [...s.customTpls, next],
+    });
+  };
+
+  const addExercise = (tplId: string, name: string) => {
+    const clean = name.trim();
+    if (!clean) return;
+    const exId = `${tplId}-${Date.now()}`;
+    withFork(tplId, (ex) => [...ex, [exId, clean, BLANK_DETAIL]]);
+    s.cheer(copy.workout.exerciseAdded);
+  };
+
+  const renameExercise = (tplId: string, exId: string, name: string) => {
+    const clean = name.trim();
+    if (!clean) return;
+    withFork(tplId, (ex) =>
+      ex.map(([id, oldName, detail]) => [id, id === exId ? clean : oldName, detail]),
+    );
+    s.cheer(copy.workout.exerciseRenamed);
+  };
+
+  const deleteExercise = (tplId: string, exId: string) => {
+    withFork(tplId, (ex) => ex.filter(([id]) => id !== exId));
+    s.cheer(copy.workout.exerciseRemoved);
+  };
+
+  /** Blank fields clear the stat rather than writing zeros over it. */
+  const commitStat = (exId: string) => {
+    const weight = editWeight.trim() ? Number(editWeight) : null;
+    const reps = editReps.trim() ? Number(editReps) : null;
+    s.update({ exStats: { ...s.exStats, [exId]: { weight, unit: editUnit, reps } } });
   };
 
   /**
@@ -203,11 +249,12 @@ export default function Workout() {
 
           {newOpen ? (
             <Card style={{ gap: 6, marginTop: 8 }}>
-              <Field value={newName} onChangeText={setNewName} placeholder={copy.workout.newNamePlaceholder} style={{ backgroundColor: t.bg, fontSize: 12 }} />
               <Field
-                value={newEx}
-                onChangeText={setNewEx}
-                placeholder={copy.workout.newExPlaceholder}
+                value={newName}
+                onChangeText={setNewName}
+                autoFocus
+                placeholder={copy.workout.newNamePlaceholder}
+                onSubmitEditing={saveTemplate}
                 style={{ backgroundColor: t.bg, fontSize: 12 }}
               />
               <Btn
@@ -286,47 +333,111 @@ export default function Workout() {
             {current.ex.map(([id, name, detail]) => {
               const sets = s.wSets[id] ?? 3;
               return (
-                <Card
+                <SwipeRow
                   key={id}
+                  editLabel={copy.a11y.editExercise(name)}
+                  deleteLabel={copy.a11y.deleteExercise(name)}
+                  onEdit={() => {
+                    setRenamingEx(id);
+                    setRenameVal(name);
+                  }}
+                  onDelete={() => deleteExercise(s.wTemplate, id)}
+                >
+                <Card
                   style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 13 }}
                 >
                   <View style={{ flex: 1 }}>
-                    <T size={13.5} weight="medium">
-                      {name}
-                    </T>
-                    {editing === id ? (
+                    {renamingEx === id ? (
                       <Field
-                        value={editVal}
-                        onChangeText={setEditVal}
+                        value={renameVal}
+                        onChangeText={setRenameVal}
                         autoFocus
-                        placeholder={copy.workout.detailPlaceholder}
+                        placeholder={copy.workout.renamePlaceholder}
                         onBlur={() => {
-                          const v = editVal.trim();
-                          setEditing(null);
-                          if (v) {
-                            s.update({ exDetails: { ...s.exDetails, [id]: v } });
-                            s.cheer(copy.toast.numbersSaved);
-                          }
+                          renameExercise(s.wTemplate, id, renameVal);
+                          setRenamingEx(null);
+                        }}
+                        onSubmitEditing={() => {
+                          renameExercise(s.wTemplate, id, renameVal);
+                          setRenamingEx(null);
                         }}
                         style={{
-                          marginTop: 2,
                           paddingVertical: 4,
                           paddingHorizontal: 6,
-                          fontSize: 11,
+                          fontSize: 13.5,
                           backgroundColor: t.bg,
                           borderColor: t.accentRamp[700],
                         }}
                       />
                     ) : (
+                      <T size={13.5} weight="medium">
+                        {name}
+                      </T>
+                    )}
+                    {editing === id ? (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 3 }}>
+                        <Field
+                          value={editWeight}
+                          onChangeText={(v) => setEditWeight(v.replace(/[^0-9.]/g, ""))}
+                          autoFocus
+                          keyboardType="decimal-pad"
+                          placeholder={copy.workout.weightPlaceholder}
+                          onBlur={() => commitStat(id)}
+                          style={{ width: 54, paddingVertical: 4, paddingHorizontal: 6, fontSize: 11, backgroundColor: t.bg, borderColor: t.accentRamp[700] }}
+                        />
+                        <Pressable
+                          onPress={() => setEditUnit((u) => (u === "lb" ? "kg" : "lb"))}
+                          accessibilityLabel={copy.a11y.toggleUnit(editUnit)}
+                          style={{
+                            paddingVertical: 4,
+                            paddingHorizontal: 8,
+                            borderRadius: radius.md,
+                            borderWidth: 1,
+                            borderColor: t.neutral[700],
+                          }}
+                        >
+                          <T size={11} weight="medium" color={t.neutral[300]}>
+                            {editUnit}
+                          </T>
+                        </Pressable>
+                        <Field
+                          value={editReps}
+                          onChangeText={(v) => setEditReps(v.replace(/[^0-9]/g, ""))}
+                          keyboardType="number-pad"
+                          placeholder={copy.workout.repsPlaceholder}
+                          onBlur={() => commitStat(id)}
+                          style={{ width: 48, paddingVertical: 4, paddingHorizontal: 6, fontSize: 11, backgroundColor: t.bg, borderColor: t.accentRamp[700] }}
+                        />
+                        <T size={10.5} color={t.neutral[500]}>
+                          {copy.workout.reps}
+                        </T>
+                        {/* number-pad has no return key on iOS, so blur alone
+                            can't signal "done" — this is the only explicit way
+                            to close the row once both numbers are in. */}
+                        <Pressable
+                          onPress={() => {
+                            commitStat(id);
+                            setEditing(null);
+                          }}
+                          accessibilityLabel={copy.a11y.done}
+                          hitSlop={6}
+                        >
+                          <Icon name="check" size={14} color={t.accent} />
+                        </Pressable>
+                      </View>
+                    ) : (
                       <Pressable
                         onPress={() => {
                           setEditing(id);
-                          setEditVal(s.exDetails[id] ?? "");
+                          const stat = s.exStats[id];
+                          setEditWeight(stat?.weight != null ? String(stat.weight) : "");
+                          setEditReps(stat?.reps != null ? String(stat.reps) : "");
+                          setEditUnit(stat?.unit ?? "lb");
                         }}
                         style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
                       >
                         <T size={11} color={t.neutral[500]}>
-                          {s.exDetails[id] ?? detail}
+                          {formatStat(s.exStats[id]) ?? detail}
                         </T>
                         <Icon name="pencil-simple" size={10} color={t.neutral[500]} />
                       </Pressable>
@@ -347,8 +458,30 @@ export default function Workout() {
                     onPress={() => s.update({ wSets: { ...s.wSets, [id]: sets + 1 } })}
                   />
                 </Card>
+                </SwipeRow>
               );
             })}
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              <Field
+                value={newExName}
+                onChangeText={setNewExName}
+                placeholder={copy.workout.addExercisePlaceholder}
+                onSubmitEditing={() => {
+                  addExercise(s.wTemplate, newExName);
+                  setNewExName("");
+                }}
+                style={{ flex: 1, paddingVertical: 9, paddingHorizontal: 11, fontSize: 12 }}
+              />
+              <IconBtn
+                icon="plus"
+                accent
+                label={copy.a11y.addExercise}
+                onPress={() => {
+                  addExercise(s.wTemplate, newExName);
+                  setNewExName("");
+                }}
+              />
+            </View>
           </View>
         </View>
 
