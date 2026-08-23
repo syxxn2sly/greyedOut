@@ -1,6 +1,6 @@
 import {
   AnchorSimple, ArrowCounterClockwise, ArrowLeft, ArrowsInLineHorizontal, Barbell,
-  Bicycle, BookmarkSimple, Books, BowlFood, Brain, CalendarBlank, CalendarPlus,
+  Bell, Bicycle, BookmarkSimple, Books, BowlFood, Brain, CalendarBlank, CalendarPlus,
   CaretLeft, CaretRight, CaretUp, Check, CheckCircle, Cloud, Drop, Eye, Footprints,
   ForkKnife, GraduationCap, HandFist, Heartbeat, ListChecks, Microphone, Minus,
   Moon, MoonStars, Mountains, NotePencil, PencilSimple, PersonSimpleRun, Pill,
@@ -19,6 +19,7 @@ const icons = {
   "arrow-left": ArrowLeft,
   "arrows-in-line-horizontal": ArrowsInLineHorizontal,
   barbell: Barbell,
+  bell: Bell,
   bicycle: Bicycle,
   "bookmark-simple": BookmarkSimple,
   books: Books,

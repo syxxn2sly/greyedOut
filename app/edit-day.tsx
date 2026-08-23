@@ -7,6 +7,7 @@ import { Btn, Card, Field, IconBtn, Screen, T, useTheme } from "@/components/ui"
 import { radius } from "@/constants/theme";
 import { defaultBlockTime } from "@/lib/schedule";
 import { copy } from "@/lib/copy";
+import { requestNotifyPermission, syncNotifications } from "@/lib/notify";
 import { fmtTime, useStore } from "@/lib/store";
 import type { AnchorTimes } from "@/lib/types";
 
@@ -172,6 +173,64 @@ export default function EditDay() {
               {copy.editDay.importCalendar}
             </T>
           </Pressable>
+
+          {/* The only system permission the app asks for, and it asks at the
+              moment the user reaches for the feature rather than on first run. */}
+          <Card style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 13 }}>
+            <Icon name="bell" size={18} color={s.notify ? t.accent : t.neutral[500]} />
+            <View style={{ flex: 1 }}>
+              <T size={13.5} weight="medium">
+                {copy.editDay.notify}
+              </T>
+              <T size={11} color={t.neutral[500]} style={{ lineHeight: 16 }}>
+                {copy.editDay.notifySub}
+              </T>
+            </View>
+            <Pressable
+              onPress={async () => {
+                if (s.notify) {
+                  s.update({ notify: false });
+                  s.cheer(copy.toast.remindersOff);
+                  return;
+                }
+                // Ask only when switching on. A denial leaves the switch off,
+                // which is the honest state: iOS will not deliver anything.
+                const ok = await requestNotifyPermission();
+                if (!ok) {
+                  s.cheer(copy.editDay.notifyDenied);
+                  return;
+                }
+                s.update({ notify: true });
+                // Say how many landed. Turning a switch on and being told
+                // nothing is how you end up unsure whether it worked.
+                const n = await syncNotifications(true, s.times, s.customBlocks);
+                s.cheer(copy.toast.remindersSet(n));
+              }}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: s.notify }}
+              accessibilityLabel={copy.editDay.notify}
+              style={{
+                width: 46,
+                height: 27,
+                borderRadius: radius.pill,
+                borderWidth: 1,
+                borderColor: s.notify ? t.accentRamp[600] : t.neutral[700],
+                backgroundColor: s.notify ? t.accentRamp[800] : "transparent",
+                justifyContent: "center",
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  left: s.notify ? 23 : 3,
+                  width: 19,
+                  height: 19,
+                  borderRadius: radius.pill,
+                  backgroundColor: s.notify ? t.accentRamp[300] : t.neutral[600],
+                }}
+              />
+            </Pressable>
+          </Card>
 
           <Card style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 13 }}>
             <Icon name="barbell" size={18} color={s.autoGym ? t.accent : t.neutral[500]} />

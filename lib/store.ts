@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState } from "react-native";
 
 import { copy } from "@/lib/copy";
+import { hasNotifyPermission, syncNotifications } from "@/lib/notify";
 import type {
   Anchor,
   SafeFood,
@@ -69,6 +70,11 @@ type State = {
   customBlocks: CustomBlock[];
   times: AnchorTimes;
   autoGym: boolean;
+  /**
+   * Off until asked for. Reminders need an iOS permission prompt, and a first
+   * run that opens with a permission dialog is a first run people leave.
+   */
+  notify: boolean;
   weekPlan: WeekPlan;
   wTemplate: string;
   wSets: Record<string, number>;
@@ -126,6 +132,7 @@ const initial: State = {
   customBlocks: [],
   times: MIN,
   autoGym: true,
+  notify: false,
   weekPlan: { mon: null, tue: null, wed: null, thu: null, fri: null, sat: null, sun: null },
   wTemplate: "push",
   wSets: {},
@@ -232,6 +239,13 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     const sub = AppState.addEventListener("change", (next) => {
       if (next !== "active") return;
       setState((s) => (s.dayKey === todayKey() ? s : rollDay(s)));
+
+      // Reminders can also be switched off from iOS Settings, where the app
+      // never hears about it. Left alone, the toggle would keep claiming to
+      // be on while nothing was ever delivered.
+      hasNotifyPermission().then((granted) => {
+        if (!granted) setState((s) => (s.notify ? { ...s, notify: false } : s));
+      });
     });
     return () => sub.remove();
   }, [hydrated]);
@@ -240,6 +254,19 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     if (!hydrated) return;
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
   }, [state, hydrated]);
+
+  /**
+   * Keep iOS's pending reminders matching the day the user can see. Anchor
+   * times move from three different screens, so rescheduling from the state
+   * they all write to is the only version that cannot drift out of sync.
+   *
+   * Depends on the two things the schedule is built from rather than on the
+   * whole state object, or every water tap would rebuild the set.
+   */
+  useEffect(() => {
+    if (!hydrated) return;
+    syncNotifications(state.notify, state.times, state.customBlocks);
+  }, [hydrated, state.notify, state.times, state.customBlocks]);
 
   const update = useCallback((patch: Partial<State> | ((s: State) => Partial<State>)) => {
     setState((s) => ({ ...s, ...(typeof patch === "function" ? patch(s) : patch) }));

@@ -31,6 +31,23 @@ export const copy = {
     confirm: "That's my day",
   },
 
+  /**
+   * Notification text. Same rule as everything else: it states what is on the
+   * day, it does not tell you to do it. A phone that barks orders is a phone
+   * you turn the reminders off on, and then the anchors help nobody.
+   *
+   * The app name is already the header on an iOS notification, so these never
+   * repeat it.
+   */
+  notify: {
+    wake: { title: "Wake", body: "Everything counts from here." },
+    meds: { title: "Breakfast + meds", body: "Food before the pill." },
+    lunch: { title: "Lunch", body: "Go-tos are loaded." },
+    gym: { title: "Workout slot", body: "The 10-minute version still counts." },
+    wind: { title: "Wind-down", body: "The day stops here." },
+    blockBody: "On your day.",
+  },
+
   // ── daily check-in ──────────────────────────────────────────────────────
   checkIn: {
     kicker: "Daily check-in · 10 seconds",
@@ -256,6 +273,9 @@ export const copy = {
     importCalendar: "Import a calendar, events land as blocks",
     autoGym: "Auto-slot the workout",
     autoGymSub: "Off means you pick the time.",
+    notify: "Remind me",
+    notifySub: "A quiet notification at each time above.",
+    notifyDenied: "Notifications are off for the app, turn them on in Settings › Greyed Out.",
     done: "Rebuild my day",
   },
 
@@ -367,6 +387,8 @@ export const copy = {
     crisisAte: "That's the big one.",
     crisisAnchor: "Anchor held.",
     imported: (n: number) => `${n} ${n === 1 ? "event" : "events"} on the timeline.`,
+    remindersSet: (n: number) => `${n} ${n === 1 ? "reminder" : "reminders"} set.`,
+    remindersOff: "Reminders off.",
   },
 
   /** The three ways a task gets shrunk when it is too big to start. */
