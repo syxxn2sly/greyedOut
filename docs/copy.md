@@ -1,6 +1,6 @@
-# Every word in Procrastin8r
+# Every word in Greyed Out
 
-271 strings · roughly 874 words. Generated from `lib/copy.ts` —
+293 strings · roughly 916 words. Generated from `lib/copy.ts` —
 edit that file, not this one, then run `npm run copy:report`.
 
 `{braces}` mark values filled in at runtime, not literal text.
@@ -12,6 +12,8 @@ edit that file, not this one, then run `npm run copy:report`.
 | `setup.kicker` | First run · 20 seconds |
 | `setup.title` | When does your day happen? |
 | `setup.intro` | Everything else builds around these four times, and you can change them later. |
+| `setup.rows.wake.label` | Wake |
+| `setup.rows.wake.sub` | everything counts from here |
 | `setup.rows.meds.label` | Meds + breakfast |
 | `setup.rows.meds.sub` | the peak window starts here |
 | `setup.rows.lunch.label` | Lunch |
@@ -20,7 +22,7 @@ edit that file, not this one, then run `npm run copy:report`.
 | `setup.rows.gym.sub` | move it any day |
 | `setup.rows.wind.label` | Wind-down |
 | `setup.rows.wind.sub` | the day stops here |
-| `setup.wakeNote` | Wake is {time}, always half an hour before meds. |
+| `setup.wakeNote` | Nudge any of these later from Edit day. |
 | `setup.confirm` | That's my day |
 
 ## checkIn
@@ -229,7 +231,7 @@ edit that file, not this one, then run `npm run copy:report`.
 | `importCalendar.title` | Import from calendar |
 | `importCalendar.loading` | Reading today's events… |
 | `importCalendar.unsupported` | Calendar access only works on your phone. |
-| `importCalendar.denied` | Calendar access is off, turn it on in Settings › Procrastin8r › Calendars. |
+| `importCalendar.denied` | Calendar access is off, turn it on in Settings › Greyed Out › Calendars. |
 | `importCalendar.error` | Could not read the calendar. |
 | `importCalendar.empty` | Nothing timed on your calendar today, all-day events are skipped. |
 | `importCalendar.listLabel` | today's events · untick what you don't want |
@@ -246,18 +248,30 @@ edit that file, not this one, then run `npm run copy:report`.
 | key | text |
 | --- | --- |
 | `workout.title` | Log workout |
-| `workout.templatesLabel` | saved templates |
+| `workout.templatesLabel` | saved templates · hold one to edit |
 | `workout.newNamePlaceholder` | name it, e.g. Pull day |
-| `workout.newExPlaceholder` | exercises, comma separated |
 | `workout.saveTemplate` | Save |
+| `workout.updateTemplate` | Update |
+| `workout.deleteTemplate` | Delete this template |
 | `workout.weekLabel` | this week · tap a day to set a plan |
 | `workout.rest` | rest |
 | `workout.weekSummary` | {n} sessions planned |
 | `workout.setsLabel` | {name} · nothing required |
-| `workout.detailPlaceholder` | 75 lb · last: 3×8 |
+| `workout.noStat` | tap to add weight · reps |
 | `workout.sets` | {n} sets |
 | `workout.voicePlaceholder` | e.g. "bench, 135 for 8" |
 | `workout.save` | Save |
+| `workout.editExercise` | edit |
+| `workout.deleteExercise` | delete |
+| `workout.renamePlaceholder` | rename it |
+| `workout.exerciseRenamed` | Renamed. |
+| `workout.exerciseRemoved` | Removed. |
+| `workout.exerciseAdded` | Added. |
+| `workout.addExercisePlaceholder` | add an exercise |
+| `workout.weightPlaceholder` | weight |
+| `workout.repsPlaceholder` | reps |
+| `workout.reps` | reps |
+| `workout.bodyweight` | bodyweight |
 
 ## nudge
 
@@ -301,6 +315,8 @@ edit that file, not this one, then run `npm run copy:report`.
 | `toast.workoutHeld` | Workout logged. |
 | `toast.numbersSaved` | Saved, pre-filled next time. |
 | `toast.templateSaved` | Template saved. |
+| `toast.templateUpdated` | Template updated. |
+| `toast.templateDeleted` | Template deleted. |
 | `toast.voiceLogged` | Logged. |
 | `toast.blockAdded` | On the timeline at {time}. |
 | `toast.blockHeld` | Block held. |
@@ -342,6 +358,7 @@ edit that file, not this one, then run `npm run copy:report`.
 | key | text |
 | --- | --- |
 | `a11y.back` | Back |
+| `a11y.done` | Done |
 | `a11y.addTask` | Add task |
 | `a11y.moveUp` | Move up |
 | `a11y.shrink` | Shrink to the first step |
@@ -355,6 +372,7 @@ edit that file, not this one, then run `npm run copy:report`.
 | `a11y.dumpToInbox` | Dump to inbox |
 | `a11y.addBlock` | Add block |
 | `a11y.newTemplate` | New template |
+| `a11y.editTemplate` | Edit {name} |
 | `a11y.logByVoice` | Log by voice |
 | `a11y.minutes` | {n} minutes |
 | `a11y.earlier` | {label} earlier |
@@ -365,4 +383,8 @@ edit that file, not this one, then run `npm run copy:report`.
 | `a11y.unAdd` | Un-add {name} |
 | `a11y.lessSets` | One less set of {name} |
 | `a11y.moreSets` | One more set of {name} |
+| `a11y.editExercise` | Edit {name} |
+| `a11y.deleteExercise` | Delete {name} |
+| `a11y.addExercise` | Add exercise |
+| `a11y.toggleUnit` | Switch from {unit} |
 

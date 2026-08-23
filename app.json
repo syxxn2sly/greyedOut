@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Procrastin8r",
+    "name": "Greyed Out",
     "slug": "procrastin8r",
     "owner": "syxxn",
     "version": "1.0.0",
@@ -15,10 +15,10 @@
       "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCalendarsUsageDescription": "Procrastin8r reads your calendar so classes, shifts and appointments can appear on your day as blocks. Events are copied onto your device only and nothing is written back to your calendar.",
-        "NSCalendarsFullAccessUsageDescription": "Procrastin8r reads your calendar so classes, shifts and appointments can appear on your day as blocks. Events are copied onto your device only and nothing is written back to your calendar.",
-        "NSRemindersUsageDescription": "Procrastin8r reads calendar events only and never requests access to Reminders. iOS requires this entry because the calendar library checks for it when the app starts.",
-        "NSRemindersFullAccessUsageDescription": "Procrastin8r reads calendar events only and never requests access to Reminders. iOS requires this entry because the calendar library checks for it when the app starts."
+        "NSCalendarsUsageDescription": "Greyed Out reads your calendar so classes, shifts and appointments can appear on your day as blocks. Events are copied onto your device only and nothing is written back to your calendar.",
+        "NSCalendarsFullAccessUsageDescription": "Greyed Out reads your calendar so classes, shifts and appointments can appear on your day as blocks. Events are copied onto your device only and nothing is written back to your calendar.",
+        "NSRemindersUsageDescription": "Greyed Out reads calendar events only and never requests access to Reminders. iOS requires this entry because the calendar library checks for it when the app starts.",
+        "NSRemindersFullAccessUsageDescription": "Greyed Out reads calendar events only and never requests access to Reminders. iOS requires this entry because the calendar library checks for it when the app starts."
       }
     },
     "android": {
@@ -38,8 +38,8 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "Procrastin8r reads your calendar so classes, shifts and appointments can appear on your day as blocks.",
-          "remindersPermission": "Procrastin8r reads calendar events only and never requests access to Reminders. iOS requires this entry because the calendar library checks for it when the app starts."
+          "calendarPermission": "Greyed Out reads your calendar so classes, shifts and appointments can appear on your day as blocks.",
+          "remindersPermission": "Greyed Out reads calendar events only and never requests access to Reminders. iOS requires this entry because the calendar library checks for it when the app starts."
         }
       ],
       [

@@ -249,7 +249,7 @@ export const copy = {
     title: "Import from calendar",
     loading: "Reading today's events…",
     unsupported: "Calendar access only works on your phone.",
-    denied: "Calendar access is off, turn it on in Settings › Procrastin8r › Calendars.",
+    denied: "Calendar access is off, turn it on in Settings › Greyed Out › Calendars.",
     error: "Could not read the calendar.",
     empty: "Nothing timed on your calendar today, all-day events are skipped.",
     listLabel: "today's events · untick what you don't want",

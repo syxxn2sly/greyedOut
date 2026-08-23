@@ -1,4 +1,4 @@
-# Procrastin8r
+# Greyed Out
 
 A daily navigator for ADHD brains. Blunt copy, zero guilt, and a home screen
 that shows three things instead of everything.

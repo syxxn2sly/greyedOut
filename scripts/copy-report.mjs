@@ -101,7 +101,7 @@ for (const r of rows) {
 
 const words = rows.reduce((a, r) => a + r.text.trim().split(/\s+/).length, 0);
 
-let md = `# Every word in Procrastin8r
+let md = `# Every word in Greyed Out
 
 ${rows.length} strings · roughly ${words} words. Generated from \`lib/copy.ts\` —
 edit that file, not this one, then run \`npm run copy:report\`.
