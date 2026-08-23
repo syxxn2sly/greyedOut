@@ -1,6 +1,6 @@
 # Every word in Greyed Out
 
-293 strings · roughly 916 words. Generated from `lib/copy.ts` —
+299 strings · roughly 927 words. Generated from `lib/copy.ts` —
 edit that file, not this one, then run `npm run copy:report`.
 
 `{braces}` mark values filled in at runtime, not literal text.
@@ -38,6 +38,12 @@ edit that file, not this one, then run `npm run copy:report`.
 | `checkIn.blunt.sub` | Just the tasks, in order. |
 | `checkIn.cant.title` | I can't today |
 | `checkIn.cant.sub` | Three things, nothing else. |
+| `checkIn.times.summary` | Up {time}, done {wind} |
+| `checkIn.times.carried` | same as yesterday |
+| `checkIn.times.adjust` | Change |
+| `checkIn.times.close` | Done |
+| `checkIn.times.wake` | Wake |
+| `checkIn.times.wind` | Wind-down |
 
 ## home
 

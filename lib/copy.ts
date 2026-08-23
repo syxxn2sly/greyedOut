@@ -48,6 +48,21 @@ export const copy = {
       title: "I can't today",
       sub: "Three things, nothing else.",
     },
+
+    /**
+     * Wake and wind-down carry over from yesterday on their own. This row
+     * exists so that carrying over is visibly a choice rather than something
+     * the app did quietly, and it stays collapsed so the check-in is still
+     * one question for anyone whose hours have not moved.
+     */
+    times: {
+      summary: (wake: string, wind: string) => `Up ${wake}, done ${wind}`,
+      carried: "same as yesterday",
+      adjust: "Change",
+      close: "Done",
+      wake: "Wake",
+      wind: "Wind-down",
+    },
   },
 
   // ── home ────────────────────────────────────────────────────────────────

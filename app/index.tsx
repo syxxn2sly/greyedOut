@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { router, type Href } from "expo-router";
 
 import { Icon } from "@/components/icon";
-import { Kicker, Screen, T, useTheme } from "@/components/ui";
+import { IconBtn, Kicker, Screen, T, useTheme } from "@/components/ui";
 import { radius } from "@/constants/theme";
 import { copy } from "@/lib/copy";
-import { useStore } from "@/lib/store";
-import type { Energy, Mode } from "@/lib/types";
+import { fmtTime, useStore } from "@/lib/store";
+import type { AnchorTimes, Energy, Mode } from "@/lib/types";
+
+/** Same clamp Edit day uses, so a nudge cannot push a time off the end of the day. */
+const clampDay = (min: number) => Math.max(0, Math.min(23 * 60 + 30, min));
 
 const options: {
   mode: Mode;
@@ -51,12 +55,21 @@ const options: {
  */
 export default function CheckIn() {
   const t = useTheme();
-  const { update } = useStore();
+  const { update, times } = useStore();
+  const [openTimes, setOpenTimes] = useState(false);
 
   const pick = (o: (typeof options)[number]) => {
     update({ mode: o.mode, energy: o.energy });
     router.replace(o.route);
   };
+
+  const nudge = (id: keyof AnchorTimes, delta: number) =>
+    update({ times: { ...times, [id]: clampDay(times[id] + delta) } });
+
+  const timeRows: { id: keyof AnchorTimes; label: string }[] = [
+    { id: "wake", label: copy.checkIn.times.wake },
+    { id: "wind", label: copy.checkIn.times.wind },
+  ];
 
   return (
     <Screen>
@@ -100,6 +113,66 @@ export default function CheckIn() {
               </View>
             </Pressable>
           ))}
+        </View>
+
+        {/* Hours carry over on their own. Showing them here makes that visible
+            without making it another question to answer. */}
+        <View style={{ marginTop: 18, gap: 8 }}>
+          <Pressable
+            onPress={() => setOpenTimes((v) => !v)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: openTimes }}
+            accessibilityLabel={copy.checkIn.times.summary(
+              fmtTime(times.wake),
+              fmtTime(times.wind),
+            )}
+            style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+          >
+            <Icon name="sun-horizon" size={14} color={t.neutral[600]} />
+            <T size={12} color={t.neutral[500]} tabular>
+              {copy.checkIn.times.summary(fmtTime(times.wake), fmtTime(times.wind))}
+            </T>
+            <T size={11} color={t.neutral[600]} style={{ flex: 1 }}>
+              {openTimes ? "" : copy.checkIn.times.carried}
+            </T>
+            <T size={11} weight="medium" color={t.accent}>
+              {openTimes ? copy.checkIn.times.close : copy.checkIn.times.adjust}
+            </T>
+          </Pressable>
+
+          {openTimes &&
+            timeRows.map((r) => (
+              <View
+                key={r.id}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  borderWidth: 1,
+                  borderColor: t.neutral[800],
+                  borderRadius: radius.md,
+                }}
+              >
+                <T size={12.5} color={t.neutral[300]} style={{ flex: 1 }}>
+                  {r.label}
+                </T>
+                <IconBtn
+                  icon="caret-left"
+                  label={copy.a11y.earlier(r.label)}
+                  onPress={() => nudge(r.id, -30)}
+                />
+                <T size={13.5} weight="medium" tabular style={{ width: 56, textAlign: "center" }}>
+                  {fmtTime(times[r.id])}
+                </T>
+                <IconBtn
+                  icon="caret-right"
+                  label={copy.a11y.later(r.label)}
+                  onPress={() => nudge(r.id, 30)}
+                />
+              </View>
+            ))}
         </View>
       </View>
     </Screen>
