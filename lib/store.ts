@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import createContextHook from "@nkzw/create-context-hook";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AppState } from "react-native";
 
 import { copy } from "@/lib/copy";
 import type {
@@ -218,6 +219,22 @@ export const [StoreProvider, useStore] = createContextHook(() => {
       }
     })();
   }, []);
+
+  /**
+   * Hydration only runs once, so on its own the day never turns over for an
+   * app that is backgrounded rather than killed — iOS keeps the JS context
+   * alive for days, and you come back to yesterday's water count and no
+   * check-in. Re-check whenever the app comes forward, which is the only
+   * moment a stale day is about to be looked at.
+   */
+  useEffect(() => {
+    if (!hydrated) return;
+    const sub = AppState.addEventListener("change", (next) => {
+      if (next !== "active") return;
+      setState((s) => (s.dayKey === todayKey() ? s : rollDay(s)));
+    });
+    return () => sub.remove();
+  }, [hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
