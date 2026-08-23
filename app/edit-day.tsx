@@ -7,7 +7,7 @@ import { Btn, Card, Field, IconBtn, Screen, T, useTheme } from "@/components/ui"
 import { radius } from "@/constants/theme";
 import { defaultBlockTime } from "@/lib/schedule";
 import { copy } from "@/lib/copy";
-import { requestNotifyPermission } from "@/lib/notify";
+import { requestNotifyPermission, syncNotifications } from "@/lib/notify";
 import { fmtTime, useStore } from "@/lib/store";
 import type { AnchorTimes } from "@/lib/types";
 
@@ -190,6 +190,7 @@ export default function EditDay() {
               onPress={async () => {
                 if (s.notify) {
                   s.update({ notify: false });
+                  s.cheer(copy.toast.remindersOff);
                   return;
                 }
                 // Ask only when switching on. A denial leaves the switch off,
@@ -200,6 +201,10 @@ export default function EditDay() {
                   return;
                 }
                 s.update({ notify: true });
+                // Say how many landed. Turning a switch on and being told
+                // nothing is how you end up unsure whether it worked.
+                const n = await syncNotifications(true, s.times, s.customBlocks);
+                s.cheer(copy.toast.remindersSet(n));
               }}
               accessibilityRole="switch"
               accessibilityState={{ checked: s.notify }}

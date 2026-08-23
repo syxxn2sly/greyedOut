@@ -101,12 +101,12 @@ export async function syncNotifications(
   enabled: boolean,
   times: AnchorTimes,
   blocks: CustomBlock[],
-): Promise<void> {
-  if (!canNotify) return;
+): Promise<number> {
+  if (!canNotify) return 0;
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
-    if (!enabled) return;
-    if (!(await hasNotifyPermission())) return;
+    if (!enabled) return 0;
+    if (!(await hasNotifyPermission())) return 0;
 
     const slots = [...anchorSlots(times), ...blockSlots(blocks)]
       .filter((s) => Number.isFinite(s.min) && s.min >= 0 && s.min < 24 * 60)
@@ -128,9 +128,11 @@ export async function syncNotifications(
         },
       });
     }
+    return slots.length;
   } catch {
     // A reminder that fails to schedule is not worth interrupting the app
     // over. The day still works; it is just quieter than the user asked for.
+    return 0;
   }
 }
 

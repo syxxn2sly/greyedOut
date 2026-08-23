@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState } from "react-native";
 
 import { copy } from "@/lib/copy";
-import { syncNotifications } from "@/lib/notify";
+import { hasNotifyPermission, syncNotifications } from "@/lib/notify";
 import type {
   Anchor,
   SafeFood,
@@ -239,6 +239,13 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     const sub = AppState.addEventListener("change", (next) => {
       if (next !== "active") return;
       setState((s) => (s.dayKey === todayKey() ? s : rollDay(s)));
+
+      // Reminders can also be switched off from iOS Settings, where the app
+      // never hears about it. Left alone, the toggle would keep claiming to
+      // be on while nothing was ever delivered.
+      hasNotifyPermission().then((granted) => {
+        if (!granted) setState((s) => (s.notify ? { ...s, notify: false } : s));
+      });
     });
     return () => sub.remove();
   }, [hydrated]);

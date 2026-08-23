@@ -387,6 +387,8 @@ export const copy = {
     crisisAte: "That's the big one.",
     crisisAnchor: "Anchor held.",
     imported: (n: number) => `${n} ${n === 1 ? "event" : "events"} on the timeline.`,
+    remindersSet: (n: number) => `${n} ${n === 1 ? "reminder" : "reminders"} set.`,
+    remindersOff: "Reminders off.",
   },
 
   /** The three ways a task gets shrunk when it is too big to start. */

@@ -1,6 +1,6 @@
 # Every word in Greyed Out
 
-316 strings · roughly 1015 words. Generated from `lib/copy.ts` —
+318 strings · roughly 1020 words. Generated from `lib/copy.ts` —
 edit that file, not this one, then run `npm run copy:report`.
 
 `{braces}` mark values filled in at runtime, not literal text.
@@ -354,6 +354,8 @@ edit that file, not this one, then run `npm run copy:report`.
 | `toast.crisisAte` | That's the big one. |
 | `toast.crisisAnchor` | Anchor held. |
 | `toast.imported` | {n} events on the timeline. |
+| `toast.remindersSet` | {n} reminders set. |
+| `toast.remindersOff` | Reminders off. |
 
 ## splitSteps[0]
 
