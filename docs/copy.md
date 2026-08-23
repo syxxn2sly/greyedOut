@@ -1,6 +1,6 @@
 # Every word in Greyed Out
 
-302 strings · roughly 961 words. Generated from `lib/copy.ts` —
+316 strings · roughly 1015 words. Generated from `lib/copy.ts` —
 edit that file, not this one, then run `npm run copy:report`.
 
 `{braces}` mark values filled in at runtime, not literal text.
@@ -24,6 +24,22 @@ edit that file, not this one, then run `npm run copy:report`.
 | `setup.rows.wind.sub` | the day stops here |
 | `setup.wakeNote` | Nudge any of these later from Edit day. |
 | `setup.confirm` | That's my day |
+
+## notify
+
+| key | text |
+| --- | --- |
+| `notify.wake.title` | Wake |
+| `notify.wake.body` | Everything counts from here. |
+| `notify.meds.title` | Breakfast + meds |
+| `notify.meds.body` | Food before the pill. |
+| `notify.lunch.title` | Lunch |
+| `notify.lunch.body` | Go-tos are loaded. |
+| `notify.gym.title` | Workout slot |
+| `notify.gym.body` | The 10-minute version still counts. |
+| `notify.wind.title` | Wind-down |
+| `notify.wind.body` | The day stops here. |
+| `notify.blockBody` | On your day. |
 
 ## checkIn
 
@@ -228,6 +244,9 @@ edit that file, not this one, then run `npm run copy:report`.
 | `editDay.importCalendar` | Import a calendar, events land as blocks |
 | `editDay.autoGym` | Auto-slot the workout |
 | `editDay.autoGymSub` | Off means you pick the time. |
+| `editDay.notify` | Remind me |
+| `editDay.notifySub` | A quiet notification at each time above. |
+| `editDay.notifyDenied` | Notifications are off for the app, turn them on in Settings › Greyed Out. |
 | `editDay.done` | Rebuild my day |
 
 ## importCalendar
