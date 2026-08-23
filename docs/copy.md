@@ -1,6 +1,6 @@
 # Every word in Greyed Out
 
-299 strings · roughly 927 words. Generated from `lib/copy.ts` —
+299 strings · roughly 926 words. Generated from `lib/copy.ts` —
 edit that file, not this one, then run `npm run copy:report`.
 
 `{braces}` mark values filled in at runtime, not literal text.
@@ -11,7 +11,7 @@ edit that file, not this one, then run `npm run copy:report`.
 | --- | --- |
 | `setup.kicker` | First run · 20 seconds |
 | `setup.title` | When does your day happen? |
-| `setup.intro` | Everything else builds around these four times, and you can change them later. |
+| `setup.intro` | Everything else builds around these times, and you can change them later. |
 | `setup.rows.wake.label` | Wake |
 | `setup.rows.wake.sub` | everything counts from here |
 | `setup.rows.meds.label` | Meds + breakfast |

@@ -19,7 +19,7 @@ export const copy = {
   setup: {
     kicker: "First run · 20 seconds",
     title: "When does your day happen?",
-    intro: "Everything else builds around these four times, and you can change them later.",
+    intro: "Everything else builds around these times, and you can change them later.",
     rows: {
       wake: { label: "Wake", sub: "everything counts from here" },
       meds: { label: "Meds + breakfast", sub: "the peak window starts here" },
