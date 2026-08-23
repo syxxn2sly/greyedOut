@@ -5,6 +5,7 @@ import * as Calendar from "expo-calendar";
 
 import { Icon } from "@/components/icon";
 import { Btn, Card, CheckCircleBtn, IconBtn, Kicker, Screen, T, useTheme } from "@/components/ui";
+import { radius } from "@/constants/theme";
 import { copy } from "@/lib/copy";
 import { fmtTime, useStore } from "@/lib/store";
 import type { CustomBlock } from "@/lib/types";
@@ -19,6 +20,21 @@ type Found = {
 const minutesOf = (d: Date) => d.getHours() * 60 + d.getMinutes();
 
 /**
+ * The accounts these calendars sync from — a Gmail address, an Exchange
+ * account, iCloud. iOS hands every one of them to the same API, so this is
+ * label only and changes nothing about how events are read. It is here
+ * because a missing account is the only reason a service looks unsupported.
+ */
+const accountsOf = (calendars: Calendar.Calendar[]) => {
+  const seen = new Set<string>();
+  for (const c of calendars) {
+    const name = c.source?.name?.trim();
+    if (name) seen.add(name);
+  }
+  return [...seen];
+};
+
+/**
  * Reads today's events and offers them as blocks. Read-only on purpose: the
  * app never writes to the calendar, so an import can always be undone by
  * removing the block, and a bug here cannot damage anything outside the app.
@@ -31,6 +47,7 @@ export default function ImportCalendar() {
     Platform.OS === "web" ? "unsupported" : "asking",
   );
   const [events, setEvents] = useState<Found[]>([]);
+  const [accounts, setAccounts] = useState<string[]>([]);
   const [picked, setPicked] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +61,7 @@ export default function ImportCalendar() {
       setStatus("loading");
 
       const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+      setAccounts(accountsOf(calendars));
       if (!calendars.length) {
         setEvents([]);
         setStatus("ready");
@@ -175,11 +193,48 @@ export default function ImportCalendar() {
           </T>
         ) : null}
 
+        {/* Which accounts the events came from. A service that looks
+            unsupported is almost always an account the phone never had. */}
+        {status === "ready" && !error ? (
+          <View style={{ gap: 6 }}>
+            <T size={11} color={t.neutral[500]}>
+              {accounts.length ? copy.importCalendar.accountsLabel : copy.importCalendar.noAccounts}
+            </T>
+            {accounts.length ? (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                {accounts.map((a) => (
+                  <View
+                    key={a}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 5,
+                      paddingVertical: 4,
+                      paddingHorizontal: 9,
+                      borderWidth: 1,
+                      borderColor: t.neutral[800],
+                      borderRadius: radius.pill,
+                    }}
+                  >
+                    <Icon name="calendar-blank" size={11} color={t.neutral[500]} />
+                    <T size={11} color={t.neutral[400]} numberOfLines={1}>
+                      {a}
+                    </T>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         {status === "ready" && !error ? (
           events.length === 0 ? (
             <View style={{ gap: 12 }}>
               <T size={13} color={t.neutral[400]} style={{ lineHeight: 19 }}>
                 {copy.importCalendar.empty}
+              </T>
+              <T size={12} color={t.neutral[500]} style={{ lineHeight: 18 }}>
+                {copy.importCalendar.addAccount}
               </T>
               <Btn label={copy.importCalendar.back} variant="primary" onPress={() => router.back()} />
             </View>

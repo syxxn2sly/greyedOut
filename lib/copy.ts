@@ -267,6 +267,18 @@ export const copy = {
     denied: "Calendar access is off, turn it on in Settings › Greyed Out › Calendars.",
     error: "Could not read the calendar.",
     empty: "Nothing timed on your calendar today, all-day events are skipped.",
+
+    /**
+     * iOS hands the app every calendar the phone syncs, whichever service it
+     * came from, so Google and Outlook need no separate sign-in here. What
+     * they do need is the account added to the phone, which is the one step
+     * nobody thinks of. Naming the accounts that did arrive is the fastest
+     * way to see whether the one you wanted is missing.
+     */
+    accountsLabel: "reading from",
+    noAccounts: "No calendar accounts on this phone yet.",
+    addAccount:
+      "Google, Outlook and iCloud calendars all land here once the account is added to the phone, in the Settings app under Apps › Calendar › Accounts.",
     listLabel: "today's events · untick what you don't want",
     alreadyAdded: "already on your day",
     fromCalendar: (name: string) => `from ${name}`,

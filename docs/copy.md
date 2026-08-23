@@ -1,6 +1,6 @@
 # Every word in Greyed Out
 
-299 strings · roughly 926 words. Generated from `lib/copy.ts` —
+302 strings · roughly 961 words. Generated from `lib/copy.ts` —
 edit that file, not this one, then run `npm run copy:report`.
 
 `{braces}` mark values filled in at runtime, not literal text.
@@ -240,6 +240,9 @@ edit that file, not this one, then run `npm run copy:report`.
 | `importCalendar.denied` | Calendar access is off, turn it on in Settings › Greyed Out › Calendars. |
 | `importCalendar.error` | Could not read the calendar. |
 | `importCalendar.empty` | Nothing timed on your calendar today, all-day events are skipped. |
+| `importCalendar.accountsLabel` | reading from |
+| `importCalendar.noAccounts` | No calendar accounts on this phone yet. |
+| `importCalendar.addAccount` | Google, Outlook and iCloud calendars all land here once the account is added to the phone, in the Settings app under Apps › Calendar › Accounts. |
 | `importCalendar.listLabel` | today's events · untick what you don't want |
 | `importCalendar.alreadyAdded` | already on your day |
 | `importCalendar.fromCalendar` | from {name} |
