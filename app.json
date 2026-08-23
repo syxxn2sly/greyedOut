@@ -12,7 +12,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.procrastin8r",
-      "buildNumber": "6",
+      "buildNumber": "7",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCalendarsUsageDescription": "Greyed Out reads your calendar so classes, shifts and appointments can appear on your day as blocks. Events are copied onto your device only and nothing is written back to your calendar.",
@@ -27,7 +27,7 @@
         "backgroundColor": "#18181b"
       },
       "package": "app.procrastin8r",
-      "versionCode": 6
+      "versionCode": 7
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
