@@ -323,7 +323,15 @@ export const copy = {
     setsLabel: (name: string) => `${name} · nothing required`,
     noStat: "tap to add weight · reps",
     sets: (n: number) => `${n} sets`,
-    voicePlaceholder: 'e.g. "bench, 135 for 8"',
+    /**
+     * Paste-a-workout. The placeholder shows two different shapes on
+     * purpose, because the whole point is that you do not have to rewrite
+     * whatever your notes already look like.
+     */
+    pastePlaceholder: "paste your workout\nbench 135 for 8\nsquat 3x5 225",
+    pasteLabel: "Paste from your notes",
+    pasteHint: "Weights, sets and reps are read off each line.",
+    pasteAction: "Read it",
     save: "Save",
     editExercise: "edit",
     deleteExercise: "delete",
@@ -378,7 +386,10 @@ export const copy = {
     templateSaved: "Template saved.",
     templateUpdated: "Template updated.",
     templateDeleted: "Template deleted.",
-    voiceLogged: "Logged.",
+    pasted: (n: number) => `${n} ${n === 1 ? "exercise" : "exercises"} added.`,
+    pastedSome: (n: number, skipped: number) =>
+      `${n} added, ${skipped} ${skipped === 1 ? "line" : "lines"} not understood.`,
+    pastedNone: "Nothing readable on those lines.",
     blockAdded: (time: string) => `On the timeline at ${time}.`,
     blockHeld: "Block held.",
     suggestionAdded: "Added.",
@@ -423,7 +434,7 @@ export const copy = {
     addBlock: "Add block",
     newTemplate: "New template",
     editTemplate: (name: string) => `Edit ${name}`,
-    logByVoice: "Log by voice",
+    pasteWorkout: "Read the pasted workout",
     minutes: (n: number) => `${n} minutes`,
     earlier: (label: string) => `${label} earlier`,
     later: (label: string) => `${label} later`,

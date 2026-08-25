@@ -1,6 +1,6 @@
 # Every word in Greyed Out
 
-318 strings · roughly 1020 words. Generated from `lib/copy.ts` —
+323 strings · roughly 1054 words. Generated from `lib/copy.ts` —
 edit that file, not this one, then run `npm run copy:report`.
 
 `{braces}` mark values filled in at runtime, not literal text.
@@ -287,7 +287,10 @@ edit that file, not this one, then run `npm run copy:report`.
 | `workout.setsLabel` | {name} · nothing required |
 | `workout.noStat` | tap to add weight · reps |
 | `workout.sets` | {n} sets |
-| `workout.voicePlaceholder` | e.g. "bench, 135 for 8" |
+| `workout.pastePlaceholder` | paste your workout bench 135 for 8 squat 3x5 225 |
+| `workout.pasteLabel` | Paste from your notes |
+| `workout.pasteHint` | Weights, sets and reps are read off each line. |
+| `workout.pasteAction` | Read it |
 | `workout.save` | Save |
 | `workout.editExercise` | edit |
 | `workout.deleteExercise` | delete |
@@ -345,7 +348,9 @@ edit that file, not this one, then run `npm run copy:report`.
 | `toast.templateSaved` | Template saved. |
 | `toast.templateUpdated` | Template updated. |
 | `toast.templateDeleted` | Template deleted. |
-| `toast.voiceLogged` | Logged. |
+| `toast.pasted` | {n} exercises added. |
+| `toast.pastedSome` | {n} added, {skipped} lines not understood. |
+| `toast.pastedNone` | Nothing readable on those lines. |
 | `toast.blockAdded` | On the timeline at {time}. |
 | `toast.blockHeld` | Block held. |
 | `toast.suggestionAdded` | Added. |
@@ -403,7 +408,7 @@ edit that file, not this one, then run `npm run copy:report`.
 | `a11y.addBlock` | Add block |
 | `a11y.newTemplate` | New template |
 | `a11y.editTemplate` | Edit {name} |
-| `a11y.logByVoice` | Log by voice |
+| `a11y.pasteWorkout` | Read the pasted workout |
 | `a11y.minutes` | {n} minutes |
 | `a11y.earlier` | {label} earlier |
 | `a11y.later` | {label} later |
