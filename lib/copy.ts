@@ -1,18 +1,9 @@
-/**
- * Every user-facing word in the app, in one place.
- *
- * Edit here and the app changes — nothing below is duplicated in a screen.
- * Anything taking arguments is a function; everything else is a plain string.
- *
- * `npm run copy:report` dumps this to docs/copy.md and docs/copy.json if you
- * want to read or mark it up outside the editor.
- *
- * House style:
- *   - One sentence. If it needs two, it needs fewer words.
- *   - No dashes joining clauses. Split the sentence or cut the clause.
- *   - State the fact, stop. No reassurance, no commentary, no jokes.
- *   - Everything renders lowercase, so capitals here are only for readability.
- */
+// Every string in the app lives here so I'm not hunting through screens to
+// change a word. Anything taking arguments is a function, everything else is
+// a plain string.
+//
+// Style: one sentence, no em-dashes joining clauses, state the fact and stop.
+// It all renders lowercase, so capitals here are just for readability.
 
 export const copy = {
   // ── first run ───────────────────────────────────────────────────────────

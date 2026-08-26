@@ -11,8 +11,7 @@
     "ship": "node scripts/ship.mjs",
     "build:ios": "node scripts/ship.mjs --no-submit",
     "android": "expo run:android",
-    "ios": "expo run:ios",
-    "copy:report": "node scripts/copy-report.mjs"
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
