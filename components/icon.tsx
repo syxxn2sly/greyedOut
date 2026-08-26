@@ -70,12 +70,12 @@ export function Icon({
   color,
   weight = "regular",
 }: {
-  name: string;
+  name: IconName;
   size?: number;
   color: string;
   weight?: "regular" | "bold" | "fill";
 }) {
-  const Cmp = icons[name as IconName];
+  const Cmp = icons[name];
   if (!Cmp) return null;
   return <Cmp size={size} color={color} weight={weight} />;
 }

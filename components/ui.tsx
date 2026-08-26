@@ -6,7 +6,7 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { font, radius, themes, type Theme } from "@/constants/theme";
 import { useStore } from "@/lib/store";
 
@@ -108,7 +108,7 @@ export function Btn({
   label: string;
   onPress: () => void;
   variant?: BtnVariant;
-  icon?: string;
+  icon?: IconName;
   style?: StyleProp<ViewStyle>;
   size?: number;
   disabled?: boolean;
@@ -156,7 +156,7 @@ export function IconBtn({
   size = 34,
   label,
 }: {
-  icon: string;
+  icon: IconName;
   onPress: () => void;
   accent?: boolean;
   size?: number;
@@ -209,7 +209,7 @@ export function Field({ style, ...rest }: TextInputProps) {
 }
 
 /** The accent-barred passive line used for "noticing" and schedule notes. */
-export function NoteBar({ icon, children }: { icon: string; children: ReactNode }) {
+export function NoteBar({ icon, children }: { icon: IconName; children: ReactNode }) {
   const t = useTheme();
   return (
     <View

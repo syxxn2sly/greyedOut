@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { Btn, Card, Field, IconBtn, Screen, T, useTheme } from "@/components/ui";
 import { radius } from "@/constants/theme";
 import { defaultBlockTime } from "@/lib/schedule";
@@ -16,7 +16,7 @@ const clampDay = (min: number) => Math.max(0, Math.min(23 * 60 + 30, min));
 
 type Row = {
   id: keyof AnchorTimes;
-  icon: string;
+  icon: IconName;
   label: string;
   sub: string;
 };

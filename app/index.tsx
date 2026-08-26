@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { router, type Href } from "expo-router";
 
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { IconBtn, Kicker, Screen, T, useTheme } from "@/components/ui";
 import { radius } from "@/constants/theme";
 import { copy } from "@/lib/copy";
@@ -15,7 +15,7 @@ const clampDay = (min: number) => Math.max(0, Math.min(23 * 60 + 30, min));
 const options: {
   mode: Mode;
   energy: Energy;
-  icon: string;
+  icon: IconName;
   title: string;
   sub: string;
   route: Href;
