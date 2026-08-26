@@ -1,31 +1,15 @@
-/**
- * Local notifications for the day's anchors and blocks.
- *
- * Local only, on purpose. Nothing is scheduled on a server and nothing leaves
- * the phone, so the app keeps making no network requests at all — which is
- * what the privacy policy and the store listing both claim.
- *
- * Everything here is written to be safe to call at any time: scheduling always
- * clears what it previously set before laying down the new set, so a double
- * call cannot produce two of the same reminder.
- */
+// Reminders for the anchors. All local — no server, which keeps the
+// "no network requests" claim in the privacy policy true.
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 import { copy } from "@/lib/copy";
 import type { AnchorTimes, CustomBlock } from "@/lib/types";
 
-/** The simulator delivers these, the web build has nowhere to put them. */
 export const canNotify = Platform.OS !== "web";
 
-/**
- * iOS swallows notifications while the app is in the foreground unless it is
- * told otherwise. An anchor that fires silently because you happened to have
- * the app open is the one case where the reminder was needed and missing.
- *
- * No sound and no badge: this is a nudge, not an alarm, and a badge is a
- * number the user then has to go and clear.
- */
+// iOS drops these while the app is open unless you set a handler.
+// No sound/badge on purpose — it's a nudge, not an alarm.
 if (canNotify) {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -37,12 +21,8 @@ if (canNotify) {
   });
 }
 
-/**
- * iOS keeps at most 64 pending local notifications per app and silently drops
- * the rest, so a day with a very long imported calendar cannot be allowed to
- * push the anchors out. Anchors are laid down first and this cap only ever
- * bites the blocks after them.
- */
+// iOS caps pending notifications at 64 and silently drops the rest.
+// Anchors get scheduled first so a huge calendar import can't push them out.
 const MAX_SCHEDULED = 40;
 
 type Slot = { min: number; title: string; body: string };
@@ -62,11 +42,8 @@ const blockSlots = (blocks: CustomBlock[]): Slot[] =>
     body: copy.notify.blockBody,
   }));
 
-/**
- * Ask once. A denial is a real answer, so this never nags: if the user has
- * turned it off in Settings, `canAskAgain` is false and iOS would ignore the
- * request anyway.
- */
+// Only ask once. If they said no in Settings, canAskAgain is false and
+// iOS ignores the request anyway.
 export async function requestNotifyPermission(): Promise<boolean> {
   if (!canNotify) return false;
   try {
@@ -89,14 +66,8 @@ export async function hasNotifyPermission(): Promise<boolean> {
   }
 }
 
-/**
- * Rebuild the whole schedule from scratch. Cheaper to reason about than
- * diffing against what iOS currently holds, and the set is small enough that
- * the cost does not matter.
- *
- * Times are minutes past midnight, which is how the rest of the app stores
- * them; a daily trigger wants hour and minute separately.
- */
+// Just wipe and rebuild. Diffing against what iOS holds isn't worth it
+// for five items.
 export async function syncNotifications(
   enabled: boolean,
   times: AnchorTimes,
@@ -114,13 +85,7 @@ export async function syncNotifications(
 
     for (const slot of slots) {
       await Notifications.scheduleNotificationAsync({
-        content: {
-          title: slot.title,
-          body: slot.body,
-          // Nothing here is urgent enough to earn a badge the user then has
-          // to clear. The notification is the whole message.
-          badge: undefined,
-        },
+        content: { title: slot.title, body: slot.body, badge: undefined },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DAILY,
           hour: Math.floor(slot.min / 60),
@@ -130,8 +95,7 @@ export async function syncNotifications(
     }
     return slots.length;
   } catch {
-    // A reminder that fails to schedule is not worth interrupting the app
-    // over. The day still works; it is just quieter than the user asked for.
+    // Not worth blowing up the app over. Worst case it's quieter than asked.
     return 0;
   }
 }
@@ -142,7 +106,6 @@ export async function clearNotifications(): Promise<void> {
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
   } catch {
-    // Nothing to recover from: the worst case is a stale reminder the user
-    // can turn off in Settings.
+    // nothing useful to do here
   }
 }

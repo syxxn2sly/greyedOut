@@ -22,21 +22,14 @@ import type {
 } from "@/lib/types";
 import type { ThemeName } from "@/constants/theme";
 
-/**
- * Bumped when the persisted shape changes incompatibly. v1 held the design's
- * demo seed and anchors keyed a1/a2/a3. v2 held exDetails as free-text strings
- * before weight/reps became structured. Testers lose today's numbers once on
- * this update, which is cheaper than carrying a parser for the old format.
- */
+// Bump this when the saved shape changes. Everyone loses today's data once,
+// which beats maintaining a migration for every old format.
 const STORAGE_KEY = "procrastin8r.state.v3";
 
-/**
- * Three hours between nudges. The old gap was seconds, which reads as nagging;
- * this is roughly "once a morning, once an afternoon, once an evening".
- */
+// 3h between nudges. Was seconds originally and it felt like nagging.
 const NUDGE_GAP_MS = 3 * 60 * 60 * 1000;
 
-/** Minutes past midnight — the unit every schedule time is stored in. */
+// minutes past midnight
 const MIN = { wake: 480, meds: 510, lunch: 780, gym: 1050, wind: 1320 };
 
 export type Nudge = {
@@ -91,7 +84,6 @@ const seedAnchors: Anchor[] = [
   { id: "wind", icon: "moon-stars", done: false },
 ];
 
-/** Anchor names follow the anchor times rather than being frozen at install. */
 export const anchorLabel = (id: Anchor["id"], times: AnchorTimes) =>
   id === "wake"
     ? copy.home.anchor.wake(fmtTime(times.wake))
@@ -143,11 +135,8 @@ const initial: State = {
   focusTotalMin: 25,
 };
 
-/**
- * A new day clears what the day accumulated and asks the check-in question
- * again, but keeps the setup the user has invested in: task list (minus what
- * they finished), anchor times, templates, week plan, theme.
- */
+// Clears the day but keeps anything the user set up: unfinished tasks,
+// anchor times, templates, week plan, theme.
 const rollDay = (s: State): State => ({
   ...s,
   dayKey: todayKey(),
@@ -199,18 +188,15 @@ export const [StoreProvider, useStore] = createContextHook(() => {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) {
           const saved = { ...initial, ...(JSON.parse(raw) as Partial<State>) };
-          // A blob written by an older build can carry anchors whose ids no
-          // longer exist. Labels are derived from the id, so a stale one falls
-          // through every branch and every anchor renders as the last case.
-          // Shape-check on the way in rather than trusting what is on disk.
+          // Old builds can have anchor ids that don't exist any more. Labels
+          // are derived from the id so a stale one renders as the last case.
           const validAnchors =
             Array.isArray(saved.anchors) &&
             saved.anchors.length === seedAnchors.length &&
             saved.anchors.every((a) => seedAnchors.some((s) => s.id === a?.id));
           const withTimes = {
             ...saved,
-            // Merge rather than replace: a blob written before an anchor
-            // existed would otherwise leave that time undefined.
+            // merge, don't replace — older blobs are missing newer anchors
             times: { ...initial.times, ...(saved.times ?? {}) },
           };
           const merged = validAnchors
@@ -219,30 +205,24 @@ export const [StoreProvider, useStore] = createContextHook(() => {
           setState(merged.dayKey === todayKey() ? merged : rollDay(merged));
         }
       } catch {
-        // A corrupt or unreadable blob is not worth blocking the app over —
-        // the seed state is a perfectly good place to start.
+        // corrupt blob, just start fresh
       } finally {
         setHydrated(true);
       }
     })();
   }, []);
 
-  /**
-   * Hydration only runs once, so on its own the day never turns over for an
-   * app that is backgrounded rather than killed — iOS keeps the JS context
-   * alive for days, and you come back to yesterday's water count and no
-   * check-in. Re-check whenever the app comes forward, which is the only
-   * moment a stale day is about to be looked at.
-   */
+  // Hydration only runs on cold launch. If you background the app overnight
+  // iOS keeps the JS context alive and the day never rolls — you come back to
+  // yesterday's water count. Re-check on foreground.
   useEffect(() => {
     if (!hydrated) return;
     const sub = AppState.addEventListener("change", (next) => {
       if (next !== "active") return;
       setState((s) => (s.dayKey === todayKey() ? s : rollDay(s)));
 
-      // Reminders can also be switched off from iOS Settings, where the app
-      // never hears about it. Left alone, the toggle would keep claiming to
-      // be on while nothing was ever delivered.
+      // They can also turn reminders off in Settings and we never hear about
+      // it, so the toggle would keep claiming to be on.
       hasNotifyPermission().then((granted) => {
         if (!granted) setState((s) => (s.notify ? { ...s, notify: false } : s));
       });
@@ -255,14 +235,9 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
   }, [state, hydrated]);
 
-  /**
-   * Keep iOS's pending reminders matching the day the user can see. Anchor
-   * times move from three different screens, so rescheduling from the state
-   * they all write to is the only version that cannot drift out of sync.
-   *
-   * Depends on the two things the schedule is built from rather than on the
-   * whole state object, or every water tap would rebuild the set.
-   */
+  // Anchor times get edited from three different screens, so reschedule off
+  // the state they all write to. Deps are narrow on purpose or every water
+  // tap rebuilds the whole set.
   useEffect(() => {
     if (!hydrated) return;
     syncNotifications(state.notify, state.times, state.customBlocks);
@@ -574,11 +549,8 @@ export const [StoreProvider, useStore] = createContextHook(() => {
   return value;
 });
 
-/**
- * The passive line at the top of Home. It states what the app can see and
- * never tells the user to do anything — every response to it is a tap the
- * user chooses. Order matters: food outranks water, water outranks the list.
- */
+// The line at the top of Home. States what it sees, never tells you to do
+// anything. Order matters: food > water > list.
 export const noticingLine = (food: FoodState, water: number, openTasks: number) => {
   if (food === "skipped") return copy.home.noticing.skipped;
   if (food === null) return copy.home.noticing.nothingEaten;

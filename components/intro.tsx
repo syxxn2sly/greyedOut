@@ -1,16 +1,5 @@
-/**
- * The opening beat: the icon's list draws itself, the top item gets ticked,
- * the wordmark arrives under it, and then "out" greys out.
- *
- * The mark is drawn here rather than shown as the icon PNG, because the whole
- * point is watching the check land. Same three rows and the same descending
- * emphasis as the app icon, so it reads as the icon rather than as a thing
- * that merely resembles it.
- *
- * About a second and a third end to end, and skipped entirely when the phone
- * asks for reduced motion — this is decoration, and decoration is the first
- * thing that should go when someone has said they do not want it.
- */
+// Splash animation. Drawn in code rather than using the icon PNG so the
+// checkbox can actually animate. Skipped under reduced motion.
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Easing, View } from "react-native";
 
@@ -68,8 +57,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
-          // The tick overshoots slightly on the way in. A check that simply
-          // fades on does not read as something happening.
+          // slight overshoot so it reads as landing, not just fading in
           Animated.timing(tick, {
             toValue: 1,
             duration: TICK,
@@ -83,9 +71,8 @@ export function Intro({ onDone }: { onDone: () => void }) {
             useNativeDriver: true,
           }),
           Animated.delay(HOLD),
-          // Cross-fade a muted copy over the bright one rather than animating
-          // the colour: colour interpolation cannot run on the native driver,
-          // and a splash that stutters is worse than no splash.
+          // cross-fade a grey copy — colour interpolation can't run on the
+          // native driver and it stutters
           Animated.timing(greyed, {
             toValue: 1,
             duration: GREY,
@@ -108,7 +95,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
 
   if (gone) return null;
 
-  /** Descending emphasis, the same falloff the app icon uses. */
+  // same falloff as the icon
   const bars = [
     { w: 62, color: t.text },
     { w: 50, color: t.neutral[700] },
