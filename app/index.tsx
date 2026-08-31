@@ -129,13 +129,19 @@ export default function CheckIn() {
             style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
           >
             <Icon name="sun-horizon" size={14} color={t.neutral[600]} />
-            <T size={12} color={t.neutral[500]} tabular>
-              {copy.checkIn.times.summary(fmtTime(times.wake), fmtTime(times.wind))}
-            </T>
-            <T size={11} color={t.neutral[600]} style={{ flex: 1 }}>
-              {openTimes ? "" : copy.checkIn.times.carried}
-            </T>
-            <T size={11} weight="medium" color={t.accent}>
+            {/* Stacked, not side by side — all three on one row overflowed at
+                375pt and broke onto two lines mid-phrase. */}
+            <View style={{ flex: 1 }}>
+              <T size={12} color={t.neutral[500]} tabular numberOfLines={1}>
+                {copy.checkIn.times.summary(fmtTime(times.wake), fmtTime(times.wind))}
+              </T>
+              {openTimes ? null : (
+                <T size={11} color={t.neutral[600]} numberOfLines={1}>
+                  {copy.checkIn.times.carried}
+                </T>
+              )}
+            </View>
+            <T size={11} weight="medium" color={t.accent} numberOfLines={1}>
               {openTimes ? copy.checkIn.times.close : copy.checkIn.times.adjust}
             </T>
           </Pressable>

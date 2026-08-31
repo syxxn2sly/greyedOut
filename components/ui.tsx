@@ -60,11 +60,19 @@ export function Kicker({ children, style }: { children: ReactNode; style?: Style
   );
 }
 
+// This is a phone layout. On iPad it doesn't get letterboxed any more, it
+// runs in a resizable window, and without a cap everything stretches — the
+// nav bar was wrapping "capture" mid-word. Wider than any iPhone so nothing
+// changes on phone.
+const MAX_CONTENT = 460;
+
 export function Screen({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   const t = useTheme();
   return (
     <SafeAreaView style={[{ flex: 1, backgroundColor: t.bg }, style]} edges={["top", "bottom"]}>
-      {children}
+      <View style={{ flex: 1, width: "100%", maxWidth: MAX_CONTENT, alignSelf: "center" }}>
+        {children}
+      </View>
     </SafeAreaView>
   );
 }
@@ -141,7 +149,7 @@ export function Btn({
       ]}
     >
       {icon ? <Icon name={icon} size={size + 3} color={color} /> : null}
-      <T size={size} weight="medium" color={color}>
+      <T size={size} weight="medium" color={color} numberOfLines={1}>
         {label}
       </T>
     </Pressable>
