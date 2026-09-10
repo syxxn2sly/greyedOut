@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, View, ScrollView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Circle } from "react-native-svg";
 
@@ -84,7 +84,17 @@ export default function Focus() {
           </T>
         </View>
 
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 18 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 18,
+          }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <T size={14} color={t.neutral[400]} style={{ textAlign: "center", maxWidth: 260 }}>
             {task?.title ?? copy.focus.title}
           </T>
@@ -168,7 +178,7 @@ export default function Focus() {
               })}
             </View>
           </View>
-        </View>
+        </ScrollView>
 
         <View style={{ flexDirection: "row", gap: 8 }}>
           <Field

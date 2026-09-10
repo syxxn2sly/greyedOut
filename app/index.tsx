@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { router, type Href } from "expo-router";
 
 import { Icon } from "@/components/icon";
@@ -73,7 +73,17 @@ export default function CheckIn() {
 
   return (
     <Screen>
-      <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28, gap: 10 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          paddingHorizontal: 28,
+          paddingVertical: 16,
+          gap: 10,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
         <Kicker>{copy.checkIn.kicker}</Kicker>
         <T size={28} weight="medium" style={{ letterSpacing: -0.4, marginBottom: 4 }}>
           {copy.checkIn.title}
@@ -169,7 +179,13 @@ export default function CheckIn() {
                   label={copy.a11y.earlier(r.label)}
                   onPress={() => nudge(r.id, -30)}
                 />
-                <T size={13.5} weight="medium" tabular style={{ width: 56, textAlign: "center" }}>
+                <T
+                  size={13.5}
+                  weight="medium"
+                  tabular
+                  numberOfLines={1}
+                  style={{ minWidth: 58, flexShrink: 0, textAlign: "center" }}
+                >
                   {fmtTime(times[r.id])}
                 </T>
                 <IconBtn
@@ -180,7 +196,7 @@ export default function CheckIn() {
               </View>
             ))}
         </View>
-      </View>
+      </ScrollView>
     </Screen>
   );
 }

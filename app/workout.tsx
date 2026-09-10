@@ -448,7 +448,13 @@ export default function Workout() {
                     label={copy.a11y.lessSets(name)}
                     onPress={() => s.update({ wSets: { ...s.wSets, [id]: Math.max(0, sets - 1) } })}
                   />
-                  <T size={14} weight="medium" tabular style={{ width: 52, textAlign: "center" }}>
+                  <T
+                    size={14}
+                    weight="medium"
+                    tabular
+                    numberOfLines={1}
+                    style={{ minWidth: 54, flexShrink: 0, textAlign: "center" }}
+                  >
                     {copy.workout.sets(sets)}
                   </T>
                   <IconBtn
