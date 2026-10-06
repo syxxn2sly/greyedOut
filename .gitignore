@@ -14,3 +14,7 @@ expo-env.d.ts
 
 # local working notes, not for the repo
 CLAUDE.local.md
+
+# App Store review correspondence — local only
+review-reply-*.txt
+apple-review-reply.txt
