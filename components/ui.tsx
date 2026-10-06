@@ -6,7 +6,7 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { font, radius, themes, type Theme } from "@/constants/theme";
 import { useStore } from "@/lib/store";
 
@@ -60,11 +60,19 @@ export function Kicker({ children, style }: { children: ReactNode; style?: Style
   );
 }
 
+// This is a phone layout. On iPad it doesn't get letterboxed any more, it
+// runs in a resizable window, and without a cap everything stretches — the
+// nav bar was wrapping "capture" mid-word. Wider than any iPhone so nothing
+// changes on phone.
+const MAX_CONTENT = 460;
+
 export function Screen({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   const t = useTheme();
   return (
     <SafeAreaView style={[{ flex: 1, backgroundColor: t.bg }, style]} edges={["top", "bottom"]}>
-      {children}
+      <View style={{ flex: 1, width: "100%", maxWidth: MAX_CONTENT, alignSelf: "center" }}>
+        {children}
+      </View>
     </SafeAreaView>
   );
 }
@@ -108,7 +116,7 @@ export function Btn({
   label: string;
   onPress: () => void;
   variant?: BtnVariant;
-  icon?: string;
+  icon?: IconName;
   style?: StyleProp<ViewStyle>;
   size?: number;
   disabled?: boolean;
@@ -141,7 +149,7 @@ export function Btn({
       ]}
     >
       {icon ? <Icon name={icon} size={size + 3} color={color} /> : null}
-      <T size={size} weight="medium" color={color}>
+      <T size={size} weight="medium" color={color} numberOfLines={1}>
         {label}
       </T>
     </Pressable>
@@ -156,7 +164,7 @@ export function IconBtn({
   size = 34,
   label,
 }: {
-  icon: string;
+  icon: IconName;
   onPress: () => void;
   accent?: boolean;
   size?: number;
@@ -209,7 +217,7 @@ export function Field({ style, ...rest }: TextInputProps) {
 }
 
 /** The accent-barred passive line used for "noticing" and schedule notes. */
-export function NoteBar({ icon, children }: { icon: string; children: ReactNode }) {
+export function NoteBar({ icon, children }: { icon: IconName; children: ReactNode }) {
   const t = useTheme();
   return (
     <View

@@ -1,18 +1,9 @@
-/**
- * Every user-facing word in the app, in one place.
- *
- * Edit here and the app changes — nothing below is duplicated in a screen.
- * Anything taking arguments is a function; everything else is a plain string.
- *
- * `npm run copy:report` dumps this to docs/copy.md and docs/copy.json if you
- * want to read or mark it up outside the editor.
- *
- * House style:
- *   - One sentence. If it needs two, it needs fewer words.
- *   - No dashes joining clauses. Split the sentence or cut the clause.
- *   - State the fact, stop. No reassurance, no commentary, no jokes.
- *   - Everything renders lowercase, so capitals here are only for readability.
- */
+// Every string in the app lives here so I'm not hunting through screens to
+// change a word. Anything taking arguments is a function, everything else is
+// a plain string.
+//
+// Style: one sentence, no em-dashes joining clauses, state the fact and stop.
+// It all renders lowercase, so capitals here are just for readability.
 
 export const copy = {
   // ── first run ───────────────────────────────────────────────────────────
@@ -323,7 +314,15 @@ export const copy = {
     setsLabel: (name: string) => `${name} · nothing required`,
     noStat: "tap to add weight · reps",
     sets: (n: number) => `${n} sets`,
-    voicePlaceholder: 'e.g. "bench, 135 for 8"',
+    /**
+     * Paste-a-workout. The placeholder shows two different shapes on
+     * purpose, because the whole point is that you do not have to rewrite
+     * whatever your notes already look like.
+     */
+    pastePlaceholder: "paste your workout\nbench 135 for 8\nsquat 3x5 225",
+    pasteLabel: "Paste from your notes",
+    pasteHint: "Weights, sets and reps are read off each line.",
+    pasteAction: "Read it",
     save: "Save",
     editExercise: "edit",
     deleteExercise: "delete",
@@ -378,7 +377,10 @@ export const copy = {
     templateSaved: "Template saved.",
     templateUpdated: "Template updated.",
     templateDeleted: "Template deleted.",
-    voiceLogged: "Logged.",
+    pasted: (n: number) => `${n} ${n === 1 ? "exercise" : "exercises"} added.`,
+    pastedSome: (n: number, skipped: number) =>
+      `${n} added, ${skipped} ${skipped === 1 ? "line" : "lines"} not understood.`,
+    pastedNone: "Nothing readable on those lines.",
     blockAdded: (time: string) => `On the timeline at ${time}.`,
     blockHeld: "Block held.",
     suggestionAdded: "Added.",
@@ -423,7 +425,7 @@ export const copy = {
     addBlock: "Add block",
     newTemplate: "New template",
     editTemplate: (name: string) => `Edit ${name}`,
-    logByVoice: "Log by voice",
+    pasteWorkout: "Read the pasted workout",
     minutes: (n: number) => `${n} minutes`,
     earlier: (label: string) => `${label} earlier`,
     later: (label: string) => `${label} later`,

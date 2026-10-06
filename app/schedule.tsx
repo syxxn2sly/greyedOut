@@ -111,8 +111,15 @@ export default function Schedule() {
 
           return (
             <View key={b.id} style={{ flexDirection: "row", gap: 8, opacity: ghost ? 0.65 : done ? 0.6 : 1 }}>
-              <View style={{ width: 38, alignItems: "flex-end", paddingTop: 11 }}>
-                <T size={11} tabular color={showNow ? t.accentRamp[300] : t.neutral[500]}>
+              {/* 46, not 38 — "10:30a" is six characters and was splitting
+                  onto a second line on a 375pt screen. */}
+              <View style={{ width: 46, alignItems: "flex-end", paddingTop: 11 }}>
+                <T
+                  size={11}
+                  tabular
+                  numberOfLines={1}
+                  color={showNow ? t.accentRamp[300] : t.neutral[500]}
+                >
                   {fmtTime(b.min)}
                 </T>
               </View>

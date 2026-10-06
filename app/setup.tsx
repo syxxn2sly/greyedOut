@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { router } from "expo-router";
 
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { Btn, Card, IconBtn, Kicker, Screen, T, useTheme } from "@/components/ui";
 import { copy } from "@/lib/copy";
 import { fmtTime, useStore } from "@/lib/store";
@@ -9,7 +9,7 @@ import type { AnchorTimes } from "@/lib/types";
 
 const clampDay = (min: number) => Math.max(0, Math.min(23 * 60 + 30, min));
 
-const rows: { id: keyof AnchorTimes; icon: string; label: string; sub: string }[] = [
+const rows: { id: keyof AnchorTimes; icon: IconName; label: string; sub: string }[] = [
   { id: "wake", icon: "sun-horizon", label: copy.setup.rows.wake.label, sub: copy.setup.rows.wake.sub },
   { id: "meds", icon: "pill", label: copy.setup.rows.meds.label, sub: copy.setup.rows.meds.sub },
   { id: "lunch", icon: "bowl-food", label: copy.setup.rows.lunch.label, sub: copy.setup.rows.lunch.sub },

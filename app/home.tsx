@@ -569,8 +569,8 @@ export default function Home() {
       <View
         style={{
           flexDirection: "row",
-          gap: 10,
-          paddingHorizontal: 20,
+          gap: 8,
+          paddingHorizontal: 14,
           paddingTop: 12,
           paddingBottom: 10,
           borderTopWidth: 1,
@@ -589,14 +589,14 @@ export default function Home() {
           label={copy.home.schedule}
           icon="calendar-blank"
           size={13}
-          style={{ paddingVertical: 13, paddingHorizontal: 16 }}
+          style={{ paddingVertical: 13, paddingHorizontal: 11 }}
           onPress={() => router.push("/schedule")}
         />
         <Btn
           label={copy.home.cantToday}
           variant="quiet"
           size={13}
-          style={{ paddingVertical: 13, paddingHorizontal: 14 }}
+          style={{ paddingVertical: 13, paddingHorizontal: 10 }}
           onPress={() => router.push("/crisis")}
         />
       </View>

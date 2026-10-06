@@ -6,6 +6,7 @@ import { Icon } from "@/components/icon";
 import { Btn, Card, Field, IconBtn, Kicker, Screen, SwipeRow, T, useTheme } from "@/components/ui";
 import { radius } from "@/constants/theme";
 import { copy } from "@/lib/copy";
+import { parseWorkout } from "@/lib/parse-workout";
 import { useStore } from "@/lib/store";
 import { BLANK_DETAIL, MAX_TEMPLATES, builtInTemplates, customIcons } from "@/lib/workouts";
 import type { ExStat, WeekDay } from "@/lib/types";
@@ -29,7 +30,7 @@ export default function Workout() {
   const [newName, setNewName] = useState("");
   /** null = the form is creating; an id = it is editing that template's name. */
   const [editingTpl, setEditingTpl] = useState<string | null>(null);
-  const [voice, setVoice] = useState("");
+  const [paste, setPaste] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editWeight, setEditWeight] = useState("");
   const [editReps, setEditReps] = useState("");
@@ -124,6 +125,52 @@ export default function Workout() {
         ? s.customTpls.map((c) => (c.id === id ? next : c))
         : [...s.customTpls, next],
     });
+  };
+
+  /**
+   * Read a pasted workout onto the current template.
+   *
+   * Everything lands in one update: the exercises join the template and
+   * their weights and reps go straight into exStats, so a paste produces a
+   * day you can start from rather than a list you still have to fill in.
+   *
+   * Lines it could not read are counted in the toast rather than dropped
+   * silently, because a paste that quietly loses two lifts is worse than
+   * one that says so.
+   */
+  const readPaste = () => {
+    const { found, skipped } = parseWorkout(paste);
+    if (!found.length) {
+      s.cheer(copy.toast.pastedNone);
+      return;
+    }
+
+    const stamp = Date.now();
+    const stats: Record<string, ExStat> = {};
+    const sets: Record<string, number> = {};
+
+    withFork(s.wTemplate, (ex) => {
+      const next = [...ex];
+      found.forEach((f, i) => {
+        const id = `${s.wTemplate}-${stamp}-${i}`;
+        next.push([id, f.name, BLANK_DETAIL]);
+        stats[id] = f.stat;
+        if (f.sets !== null) sets[id] = f.sets;
+      });
+      return next;
+    });
+
+    s.update({
+      exStats: { ...s.exStats, ...stats },
+      wSets: { ...s.wSets, ...sets },
+    });
+
+    setPaste("");
+    s.cheer(
+      skipped.length
+        ? copy.toast.pastedSome(found.length, skipped.length)
+        : copy.toast.pasted(found.length),
+    );
   };
 
   const addExercise = (tplId: string, name: string) => {
@@ -485,28 +532,31 @@ export default function Workout() {
           </View>
         </View>
 
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          <Field
-            value={voice}
-            onChangeText={setVoice}
-            placeholder={copy.workout.voicePlaceholder}
-            style={{ flex: 1, paddingVertical: 11, paddingHorizontal: 13 }}
-            onSubmitEditing={() => {
-              if (!voice.trim()) return;
-              setVoice("");
-              s.cheer(copy.toast.voiceLogged);
-            }}
-          />
-          <IconBtn
-            icon="microphone"
-            size={44}
-            label={copy.a11y.logByVoice}
-            onPress={() => {
-              if (!voice.trim()) return;
-              setVoice("");
-              s.cheer(copy.toast.voiceLogged);
-            }}
-          />
+        {/* Paste whatever your notes already look like. Reading the lines
+            beats retyping them, which is the only reason this is here. */}
+        <View style={{ gap: 6 }}>
+          <T size={11} color={t.neutral[500]}>
+            {copy.workout.pasteLabel}
+          </T>
+          <View style={{ flexDirection: "row", gap: 8, alignItems: "flex-end" }}>
+            <Field
+              value={paste}
+              onChangeText={setPaste}
+              placeholder={copy.workout.pastePlaceholder}
+              multiline
+              style={{ flex: 1, paddingVertical: 11, paddingHorizontal: 13, minHeight: 76 }}
+            />
+            <IconBtn
+              icon="tray-arrow-down"
+              size={44}
+              accent
+              label={copy.a11y.pasteWorkout}
+              onPress={readPaste}
+            />
+          </View>
+          <T size={11} color={t.neutral[600]}>
+            {copy.workout.pasteHint}
+          </T>
         </View>
 
         <Btn

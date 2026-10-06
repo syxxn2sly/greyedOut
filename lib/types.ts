@@ -1,3 +1,5 @@
+import type { IconName } from "@/components/icon";
+
 export type Mode = "regular" | "blunt" | "cant";
 export type Energy = "low" | "mid" | "high";
 
@@ -21,7 +23,7 @@ export type Task = {
 export type Anchor = {
   id: "wake" | "lunch" | "wind";
   /** Phosphor icon name, resolved through components/icon.tsx. */
-  icon: string;
+  icon: IconName;
   done: boolean;
 };
 
@@ -60,7 +62,7 @@ export type WorkoutTemplate = {
   /** Built-ins can be hidden but not deleted; yours can be edited and deleted. */
   custom?: boolean;
   name: string;
-  icon: string;
+  icon: IconName;
   sub: string;
   /** [id, display name, fallback text shown until a real stat is logged] */
   ex: [string, string, string][];
@@ -78,7 +80,7 @@ export type CustomBlock = {
   min: number;
   title: string;
   sub: string;
-  icon: string;
+  icon: IconName;
   kind: BlockKind;
 };
 
@@ -89,7 +91,7 @@ export type ScheduleBlock = {
   min: number;
   title: string;
   sub: string;
-  icon: string;
+  icon: IconName;
   kind: BlockKind;
   /** Suggestions render dashed and do nothing until accepted. */
   suggest?: boolean;

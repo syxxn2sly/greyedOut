@@ -1,7 +1,6 @@
 node_modules/
 .expo/
 dist/
-docs/copy.json
 web-build/
 *.log
 .DS_Store
