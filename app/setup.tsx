@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 
 import { Icon, type IconName } from "@/components/icon";
@@ -40,7 +40,11 @@ export default function Setup() {
           {copy.setup.intro}
         </T>
 
-        <View style={{ flex: 1, gap: 8, justifyContent: "center" }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
+          showsVerticalScrollIndicator={false}
+        >
           {rows.map((r) => (
             <Card
               key={r.id}
@@ -56,7 +60,13 @@ export default function Setup() {
                 </T>
               </View>
               <IconBtn icon="caret-left" label={copy.a11y.earlier(r.label)} onPress={() => nudge(r.id, -30)} />
-              <T size={14} weight="medium" tabular style={{ width: 56, textAlign: "center" }}>
+              <T
+                size={14}
+                weight="medium"
+                tabular
+                numberOfLines={1}
+                style={{ minWidth: 58, flexShrink: 0, textAlign: "center" }}
+              >
                 {fmtTime(s.times[r.id])}
               </T>
               <IconBtn icon="caret-right" label={copy.a11y.later(r.label)} onPress={() => nudge(r.id, 30)} />
@@ -66,7 +76,7 @@ export default function Setup() {
           <T size={11.5} color={t.neutral[600]} style={{ marginTop: 4, lineHeight: 17 }}>
             {copy.setup.wakeNote}
           </T>
-        </View>
+        </ScrollView>
 
         <Btn
           label={copy.setup.confirm}

@@ -95,7 +95,13 @@ export default function EditDay() {
                 </T>
               </View>
               <IconBtn icon="caret-left" label={copy.a11y.earlier(r.label)} onPress={() => nudge(r, -30)} />
-              <T size={14} weight="medium" tabular style={{ width: 56, textAlign: "center" }}>
+              <T
+                size={14}
+                weight="medium"
+                tabular
+                numberOfLines={1}
+                style={{ minWidth: 58, flexShrink: 0, textAlign: "center" }}
+              >
                 {fmtTime(s.times[r.id])}
               </T>
               <IconBtn icon="caret-right" label={copy.a11y.later(r.label)} onPress={() => nudge(r, 30)} />
@@ -123,7 +129,13 @@ export default function EditDay() {
                 label={copy.a11y.earlier(c.title)}
                 onPress={() => moveBlock(c.id, -30)}
               />
-              <T size={14} weight="medium" tabular style={{ width: 56, textAlign: "center" }}>
+              <T
+                size={14}
+                weight="medium"
+                tabular
+                numberOfLines={1}
+                style={{ minWidth: 58, flexShrink: 0, textAlign: "center" }}
+              >
                 {fmtTime(c.min)}
               </T>
               <IconBtn

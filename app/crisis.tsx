@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, ScrollView } from "react-native";
 import { router } from "expo-router";
 
 import { Icon } from "@/components/icon";
@@ -20,7 +20,17 @@ export default function Crisis() {
 
   return (
     <Screen>
-      <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 26, gap: 16 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          paddingHorizontal: 26,
+          paddingVertical: 16,
+          gap: 16,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
         <Kicker>{copy.crisis.kicker}</Kicker>
         <T size={24} weight="medium" style={{ letterSpacing: -0.35 }}>
           {copy.crisis.title}
@@ -89,7 +99,7 @@ export default function Crisis() {
             router.replace("/home");
           }}
         />
-      </View>
+      </ScrollView>
     </Screen>
   );
 }
