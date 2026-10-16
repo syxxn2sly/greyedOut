@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, router, usePathname } from "expo-router";
@@ -12,6 +12,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/jetbrains-mono";
 
+import { Intro } from "@/components/intro";
 import { Nudge, Toast } from "@/components/overlays";
 import { useTheme } from "@/components/ui";
 import { StoreProvider, useStore } from "@/lib/store";
@@ -29,6 +30,7 @@ function Shell() {
   });
 
   const ready = hydrated && fontsLoaded;
+  const [intro, setIntro] = useState(true);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
@@ -54,6 +56,9 @@ function Shell() {
       />
       <Nudge />
       <Toast />
+      {/* Sits over the first screen rather than delaying it, so the animation
+          is never the reason the app took a moment to open. */}
+      {intro ? <Intro onDone={() => setIntro(false)} /> : null}
     </View>
   );
 }

@@ -63,7 +63,7 @@ export function buildSchedule(opts: {
             min: peakStart,
             title: copy.schedule.blocks.deep.title(lower(big.title)),
             sub: copy.schedule.blocks.deep.sub(fmtTime(peakStart), fmtTime(peakEnd)),
-            icon: "brain",
+            icon: "brain" as const,
             kind: "work" as const,
             suggest: true,
           },
@@ -86,7 +86,7 @@ export function buildSchedule(opts: {
             min: times.lunch - 60,
             title: copy.schedule.blocks.light.title(quick.map((t) => lower(t.title)).join(", ")),
             sub: copy.schedule.blocks.light.sub(quick.length),
-            icon: "list-checks",
+            icon: "list-checks" as const,
             kind: "work" as const,
             suggest: true,
           },
@@ -128,7 +128,7 @@ export function buildSchedule(opts: {
       icon: "moon-stars",
       kind: "anchor",
     },
-    ...customBlocks.map((c) => ({ ...c, tag: "yours", removable: true })),
+    ...customBlocks.map((c) => ({ ...c, tag: "yours" as const, removable: true })),
   ];
 
   return blocks.filter((b) => !hiddenBlocks[b.id]).sort((a, b) => a.min - b.min);

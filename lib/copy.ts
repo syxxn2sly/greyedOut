@@ -1,18 +1,9 @@
-/**
- * Every user-facing word in the app, in one place.
- *
- * Edit here and the app changes — nothing below is duplicated in a screen.
- * Anything taking arguments is a function; everything else is a plain string.
- *
- * `npm run copy:report` dumps this to docs/copy.md and docs/copy.json if you
- * want to read or mark it up outside the editor.
- *
- * House style:
- *   - One sentence. If it needs two, it needs fewer words.
- *   - No dashes joining clauses. Split the sentence or cut the clause.
- *   - State the fact, stop. No reassurance, no commentary, no jokes.
- *   - Everything renders lowercase, so capitals here are only for readability.
- */
+// Every string in the app lives here so I'm not hunting through screens to
+// change a word. Anything taking arguments is a function, everything else is
+// a plain string.
+//
+// Style: one sentence, no em-dashes joining clauses, state the fact and stop.
+// It all renders lowercase, so capitals here are just for readability.
 
 export const copy = {
   // ── first run ───────────────────────────────────────────────────────────
@@ -29,6 +20,23 @@ export const copy = {
     },
     wakeNote: "Nudge any of these later from Edit day.",
     confirm: "That's my day",
+  },
+
+  /**
+   * Notification text. Same rule as everything else: it states what is on the
+   * day, it does not tell you to do it. A phone that barks orders is a phone
+   * you turn the reminders off on, and then the anchors help nobody.
+   *
+   * The app name is already the header on an iOS notification, so these never
+   * repeat it.
+   */
+  notify: {
+    wake: { title: "Wake", body: "Everything counts from here." },
+    meds: { title: "Breakfast + meds", body: "Food before the pill." },
+    lunch: { title: "Lunch", body: "Go-tos are loaded." },
+    gym: { title: "Workout slot", body: "The 10-minute version still counts." },
+    wind: { title: "Wind-down", body: "The day stops here." },
+    blockBody: "On your day.",
   },
 
   // ── daily check-in ──────────────────────────────────────────────────────
@@ -256,6 +264,9 @@ export const copy = {
     importCalendar: "Import a calendar, events land as blocks",
     autoGym: "Auto-slot the workout",
     autoGymSub: "Off means you pick the time.",
+    notify: "Remind me",
+    notifySub: "A quiet notification at each time above.",
+    notifyDenied: "Notifications are off for the app, turn them on in Settings › Greyed Out.",
     done: "Rebuild my day",
   },
 
@@ -303,7 +314,15 @@ export const copy = {
     setsLabel: (name: string) => `${name} · nothing required`,
     noStat: "tap to add weight · reps",
     sets: (n: number) => `${n} sets`,
-    voicePlaceholder: 'e.g. "bench, 135 for 8"',
+    /**
+     * Paste-a-workout. The placeholder shows two different shapes on
+     * purpose, because the whole point is that you do not have to rewrite
+     * whatever your notes already look like.
+     */
+    pastePlaceholder: "paste your workout\nbench 135 for 8\nsquat 3x5 225",
+    pasteLabel: "Paste from your notes",
+    pasteHint: "Weights, sets and reps are read off each line.",
+    pasteAction: "Read it",
     save: "Save",
     editExercise: "edit",
     deleteExercise: "delete",
@@ -358,7 +377,10 @@ export const copy = {
     templateSaved: "Template saved.",
     templateUpdated: "Template updated.",
     templateDeleted: "Template deleted.",
-    voiceLogged: "Logged.",
+    pasted: (n: number) => `${n} ${n === 1 ? "exercise" : "exercises"} added.`,
+    pastedSome: (n: number, skipped: number) =>
+      `${n} added, ${skipped} ${skipped === 1 ? "line" : "lines"} not understood.`,
+    pastedNone: "Nothing readable on those lines.",
     blockAdded: (time: string) => `On the timeline at ${time}.`,
     blockHeld: "Block held.",
     suggestionAdded: "Added.",
@@ -367,6 +389,8 @@ export const copy = {
     crisisAte: "That's the big one.",
     crisisAnchor: "Anchor held.",
     imported: (n: number) => `${n} ${n === 1 ? "event" : "events"} on the timeline.`,
+    remindersSet: (n: number) => `${n} ${n === 1 ? "reminder" : "reminders"} set.`,
+    remindersOff: "Reminders off.",
   },
 
   /** The three ways a task gets shrunk when it is too big to start. */
@@ -401,7 +425,7 @@ export const copy = {
     addBlock: "Add block",
     newTemplate: "New template",
     editTemplate: (name: string) => `Edit ${name}`,
-    logByVoice: "Log by voice",
+    pasteWorkout: "Read the pasted workout",
     minutes: (n: number) => `${n} minutes`,
     earlier: (label: string) => `${label} earlier`,
     later: (label: string) => `${label} later`,

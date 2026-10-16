@@ -1,74 +1,45 @@
 # Greyed Out
 
-An iOS day planner for the days where the plan and the energy don't match.
+An iOS day planner for days when the plan and the energy don't match.
 
-Most planners assume you woke up as the person who wrote yesterday's list. This
-one asks how today is going first, then decides how much to put on screen. Pick
-"regular" and you get the next three things, food, water, your schedule and
-movement. Pick "i can't today" and you get three items total, none of them
-optional-feeling, and everything else disappears until you say otherwise.
+I kept bouncing off normal planners. They assume you're the same person who
+wrote yesterday's list, and when you're not, the list just sits there making
+you feel worse. So this one asks how today is going *first*, then decides how
+much to put on screen.
 
-The rule the whole app is built on: it states what it can see and never tells
+Three answers, and none of them are wrong:
+
+- **regular** — next 3 tasks, food and water, your schedule, movement
+- **the blunt list** — numbered lines, nothing else
+- **i can't today** — three items total, everything else hidden until you ask
+  for it back
+
+The rule the whole thing is built on: it says what it can see and never tells
 you what to do. "nothing eaten yet today." is a sentence, not an instruction.
-Every response to it is a tap you chose. And bailing counts. The focus timer
-has a button that literally says "bail, still counts", styled the same as the
-one that says done, because a timer you can only exit by failing is a timer you
-stop starting.
+And the focus timer's exit button says "bail, still counts", because a timer
+you can only leave by failing is a timer you stop starting.
 
-## The screens
+Built with Expo / React Native. On the App Store as of August 2026.
 
-**Check-in** is the only gate. One question, three answers, none of them wrong.
-It also shows what time you were up and when the day stops, carried over from
-yesterday, in case today is different.
+## Screens
 
-**Home** is next 3, your anchors, one-tap food and water, and movement. The
-list is capped on purpose. On low-capacity days it shows one thing.
+**Check-in** is the only gate. One question, and it shows what time you were up
+and when the day stops, carried over from yesterday.
 
-**The blunt list** is home with everything decorative stripped out. Numbered
-lines. That's it.
+**Home** is next 3, anchors, one-tap food and water, movement. The list is
+capped on purpose — on low-capacity days it shows one thing.
 
-**Capture** is a dump box and two triage questions, then it's filed and out of
-your head.
+**Capture** is a dump box and two triage questions so things stop circling.
 
-**Focus** is a timer, a box for stray thoughts so they stop circling, and two
-ways out that both count.
+**Focus** is a timer, a box for stray thoughts, and two ways out that both
+count.
 
-**Schedule** rebuilds the day from your anchors and drops deep work inside your
-meds window, because that's when it'll actually happen. Dashed blocks are
-suggestions until you accept them. It'll also pull in today's calendar events.
+**Schedule** rebuilds the day from your anchors and puts deep work inside your
+meds window, since that's when it'll actually happen. Dashed blocks are
+suggestions until you accept them.
 
-**Log workout** has templates, a week cycle where "rest" is a real plan rather
-than a blank, and sets you're allowed to ignore.
-
-## Calendars
-
-There's no Google or Outlook integration to set up, and that's deliberate. iOS
-hands the app every calendar the phone syncs through EventKit, so a Gmail
-calendar and an Exchange calendar arrive looking exactly like an iCloud one.
-The read is read-only. Nothing is ever written back.
-
-The thing that trips people up: the account has to be added to the *phone*
-(Settings › Apps › Calendar › Accounts). Having the Outlook app installed does
-nothing, because it keeps its own store that EventKit never sees. The import
-screen lists which accounts it found so you can tell the difference between
-"no events today" and "you never connected that account".
-
-## Design
-
-Dark by default. The accent is deliberately desaturated down to a steel grey
-that sits on the neutral ramp instead of fighting it, which is the whole reason
-the interface is quiet enough to open on a bad day. JetBrains Mono, lowercase
-everywhere, applied once in `components/ui.tsx` so a new screen can't forget.
-
-Colours and type live in `constants/theme.ts`. State lives in `lib/store.ts`
-and persists to `AsyncStorage`. Screens read it through `useStore()` — don't
-add a second storage layer.
-
-Every user-facing string is in `lib/copy.ts`, nowhere else. `npm run
-copy:report` dumps the lot to `docs/copy.md` if you want to read the app's
-voice in one sitting.
-
-The icon is generated, not drawn: `node scripts/make-icons.mjs`.
+**Log workout** has templates, a week cycle, and a paste box — dump a workout
+out of Notes and it reads the weights and reps off each line.
 
 ## Running it
 
@@ -84,55 +55,64 @@ npm start
 npm run typecheck
 ```
 
-```bash
-npm run lint
-```
-
-## Shipping it
+## Shipping
 
 ```bash
 npm run ship
 ```
 
-Bumps the build number, commits, builds on EAS, and hands the result to App
-Store Connect. `npm run build:ios` is the same thing without the upload.
+Bumps the build number, commits, builds on EAS, submits. `npm run build:ios`
+skips the submit. The bump is the point — App Store Connect rejects a build
+number it's seen before and I kept forgetting.
 
-The bump is the whole reason the script exists. `appVersionSource` is `local`,
-so the number lives in `app.json`, and App Store Connect refuses a build number
-it has already seen. Making it part of shipping means it isn't something you
-have to remember at the worst possible moment.
-
-To build on this machine instead of waiting in the EAS queue, add `--local`:
+To build locally instead of waiting in the EAS queue:
 
 ```bash
 npx --yes eas-cli@latest build --platform ios --profile production --local --output build.ipa
 ```
 
-That one hands you an `.ipa` to drag into Transporter yourself.
+## How it's organised
 
-## Things that will bite you
+Nothing clever. `app/` is one file per screen (expo-router), `lib/store.ts`
+holds all the state and persists to AsyncStorage, `lib/copy.ts` has every
+user-facing string, `constants/theme.ts` has colours and type.
+
+State goes through `useStore()`. Don't add a second storage layer.
+
+## Assumptions and limits
+
+- **iOS only in practice.** There's an Android config and it probably builds,
+  but I've never run it on a real Android device.
+- **Single device.** No account, no sync, no backend. Wipe the app and your
+  data's gone. This is deliberate — no network calls at all — but it does mean
+  no backup.
+- **`STORAGE_KEY` is versioned, not migrated.** Bump it when the saved shape
+  changes and everyone loses a day's data once. Fine at this size; would not
+  be fine with real users' history.
+- **Calendar import is read-only and today-only.** It never writes back.
+- **No tests.** The parser in `lib/parse-workout.ts` is the one piece that
+  really wants them.
+
+## Things that caught me out
 
 **`ios/` is generated and gitignored.** Editing `app.json` does nothing to the
-binary until you run `expo prebuild`. Ask me how I know: the app was renamed
-from Procrastin8r, everything looked right in the repo, and the built IPA still
-had the old name in its display name and every permission dialog.
+binary until you run `expo prebuild`. I renamed the app, everything looked
+right in the repo, and the built IPA still had the old name in its display
+name and every permission dialog.
 
-**The bundle ID is still `app.procrastin8r`.** Renaming the app didn't rename
-that, and it can't be changed now without a new App Store Connect record.
-Nobody sees it. Leave it alone.
+**Bundle ID is still `app.procrastin8r`** from before the rename. Can't change
+it now without a new App Store Connect record. Nobody sees it.
 
 **CocoaPods dies with a Unicode error if `LANG` isn't set.** If `pod install`
 throws `Unicode Normalization not appropriate for ASCII-8BIT`, prefix it with
-`LANG=en_US.UTF-8`. Nothing is actually wrong.
+`LANG=en_US.UTF-8`.
 
-**Local EAS builds need real disk.** Somewhere north of 10GB free. The failure
-mode is a confusing codesigning error partway through `pod install`, not an
-honest "out of space".
+**Local EAS builds need ~10GB free.** The failure looks like a codesigning
+error partway through `pod install`, not an out-of-space message.
 
-**`STORAGE_KEY` in `lib/store.ts` is versioned, not migrated.** Bump it when
-the persisted shape changes incompatibly and everyone loses today's data once.
-That's the trade: no migration code to carry forever. Don't bump it casually.
+## Next
 
-**`Icon` takes a plain string and renders nothing for a name that isn't in the
-map.** It typechecks, it ships, and there's just a hole where the icon should
-be. Check `components/icon.tsx` before using a new one.
+- Home screen widget (needs a WidgetKit target + a config plugin, since
+  `prebuild` wipes anything added by hand in Xcode)
+- Tests for the workout parser
+- Actually try it on Android
