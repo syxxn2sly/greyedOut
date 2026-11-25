@@ -1,66 +1,87 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppState, Platform, Pressable, ScrollView, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import * as Calendar from "expo-calendar";
 
 import { Icon } from "@/components/icon";
-import { Btn, Card, CheckCircleBtn, IconBtn, Kicker, Screen, T, useTheme } from "@/components/ui";
+import {
+  Btn,
+  Card,
+  CheckCircleBtn,
+  IconBtn,
+  Kicker,
+  Screen,
+  T,
+  useTheme,
+} from "@/components/ui";
 import { radius } from "@/constants/theme";
+import {
+  accountsOf,
+  addDays,
+  askCalendarAccess,
+  dateKeyOf,
+  readEvents,
+  type FoundEvent,
+} from "@/lib/calendar-sync";
 import { copy } from "@/lib/copy";
 import { fmtTime, useStore } from "@/lib/store";
 import type { CustomBlock } from "@/lib/types";
 
-type Found = {
-  key: string;
-  title: string;
-  min: number;
-  calendarTitle: string;
-};
-
-const minutesOf = (d: Date) => d.getHours() * 60 + d.getMinutes();
+/** How far ahead you can import. A week is the horizon people actually plan
+ *  against, and every extra day is another row to scroll past. */
+const DAYS_AHEAD = 7;
 
 /**
- * The accounts these calendars sync from — a Gmail address, an Exchange
- * account, iCloud. iOS hands every one of them to the same API, so this is
- * label only and changes nothing about how events are read. It is here
- * because a missing account is the only reason a service looks unsupported.
- */
-const accountsOf = (calendars: Calendar.Calendar[]) => {
-  const seen = new Set<string>();
-  for (const c of calendars) {
-    const name = c.source?.name?.trim();
-    if (name) seen.add(name);
-  }
-  return [...seen];
-};
-
-/**
- * Reads today's events and offers them as blocks. Read-only on purpose: the
- * app never writes to the calendar, so an import can always be undone by
- * removing the block, and a bug here cannot damage anything outside the app.
+ * Offers calendar events as blocks, for today or any of the next few days.
+ *
+ * Imports keep the source event id, so a block can follow its event when the
+ * meeting moves and come off the day when the meeting is cancelled. Picking a
+ * day pins the block to it, which is what stops a one-off appointment
+ * reappearing every morning.
  */
 export default function ImportCalendar() {
   const t = useTheme();
   const s = useStore();
 
-  const [status, setStatus] = useState<"asking" | "denied" | "loading" | "ready" | "unsupported">(
-    Platform.OS === "web" ? "unsupported" : "asking",
-  );
-  const [events, setEvents] = useState<Found[]>([]);
+  const [status, setStatus] = useState<
+    "asking" | "denied" | "loading" | "ready" | "unsupported"
+  >(Platform.OS === "web" ? "unsupported" : "asking");
+  const [events, setEvents] = useState<FoundEvent[]>([]);
   const [accounts, setAccounts] = useState<string[]>([]);
   const [picked, setPicked] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  const [dayOffset, setDayOffset] = useState(0);
 
-  const load = useCallback(async () => {
+  const days = useMemo(() => {
+    const today = new Date();
+    return Array.from({ length: DAYS_AHEAD }, (_, i) => {
+      const d = addDays(today, i);
+      return {
+        offset: i,
+        dateKey: dateKeyOf(d),
+        label:
+          i === 0
+            ? copy.importCalendar.dayToday
+            : i === 1
+              ? copy.importCalendar.dayTomorrow
+              : d.toLocaleDateString(undefined, { weekday: "short" }),
+      };
+    });
+  }, []);
+
+  const dateKey = days[dayOffset]?.dateKey ?? dateKeyOf(new Date());
+
+  const load = useCallback(async (key: string) => {
     try {
-      const { status: perm } = await Calendar.requestCalendarPermissionsAsync();
-      if (perm !== "granted") {
+      if (!(await askCalendarAccess())) {
         setStatus("denied");
         return;
       }
       setStatus("loading");
 
-      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+      const calendars = await Calendar.getCalendarsAsync(
+        Calendar.EntityTypes.EVENT,
+      );
       setAccounts(accountsOf(calendars));
       if (!calendars.length) {
         setEvents([]);
@@ -68,46 +89,15 @@ export default function ImportCalendar() {
         return;
       }
 
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(start);
-      end.setHours(23, 59, 59, 999);
-
-      const raw = await Calendar.getEventsAsync(
-        calendars.map((c) => c.id),
-        start,
-        end,
-      );
-
-      const byCalendar = new Map(calendars.map((c) => [c.id, c.title]));
-      const found = raw
-        // All-day events have no time to sit at, and a day-long band would
-        // swamp a timeline whose whole point is where things sit in the day.
-        .filter((e) => !e.allDay && e.startDate)
-        .map((e): Found => {
-          const startsAt = new Date(e.startDate as string);
-          const min = minutesOf(startsAt);
-          const title = (e.title ?? "").trim() || copy.importCalendar.untitledEvent;
-          return {
-            key: String(e.id),
-            title,
-            min,
-            calendarTitle: byCalendar.get(e.calendarId) ?? "calendar",
-          };
-        })
-        .sort((a, b) => a.min - b.min);
-
+      const found = await readEvents([key]);
       setEvents(found);
-      setPicked(Object.fromEntries(found.map((f) => [f.key, true])));
+      setPicked(Object.fromEntries(found.map((f) => [f.eventId, true])));
       setError(null);
       setStatus("ready");
     } catch (e) {
       setError(e instanceof Error ? e.message : copy.importCalendar.error);
       setStatus("ready");
     }
-    // Deliberately depends on nothing: whether an event is already on the day
-    // is derived at render, which keeps this callback stable enough to hang
-    // the focus and foreground listeners off without a reload loop.
   }, []);
 
   /**
@@ -120,23 +110,26 @@ export default function ImportCalendar() {
    */
   useFocusEffect(
     useCallback(() => {
-      if (Platform.OS !== "web") load();
-    }, [load]),
+      if (Platform.OS !== "web") load(dateKey);
+    }, [load, dateKey]),
   );
 
   useEffect(() => {
     if (Platform.OS === "web") return;
     const sub = AppState.addEventListener("change", (next) => {
-      if (next === "active") load();
+      if (next === "active") load(dateKey);
     });
     return () => sub.remove();
-  }, [load]);
+  }, [load, dateKey]);
 
-  const isExisting = (e: Found) =>
-    s.customBlocks.some((b) => b.title === e.title && b.min === e.min);
+  // Matched on the event id now, not title plus time. Those were the two
+  // fields that change when a meeting moves, so the old check called a moved
+  // event a new one and let you import it twice.
+  const isExisting = (e: FoundEvent) =>
+    s.customBlocks.some((b) => b.source?.eventId === e.eventId);
 
   const importPicked = () => {
-    const chosen = events.filter((e) => picked[e.key] && !isExisting(e));
+    const chosen = events.filter((e) => picked[e.eventId] && !isExisting(e));
     if (!chosen.length) {
       router.back();
       return;
@@ -148,19 +141,39 @@ export default function ImportCalendar() {
       sub: copy.importCalendar.fromCalendar(e.calendarTitle),
       icon: "calendar-blank",
       kind: "school",
+      source: {
+        eventId: e.eventId,
+        calendarId: e.calendarId,
+        dateKey: e.dateKey,
+      },
     }));
     s.update({ customBlocks: [...s.customBlocks, ...blocks] });
     s.cheer(copy.toast.imported(blocks.length));
     router.back();
   };
 
-  const pickedCount = events.filter((e) => picked[e.key] && !isExisting(e)).length;
+  const pickedCount = events.filter(
+    (e) => picked[e.eventId] && !isExisting(e),
+  ).length;
 
   return (
     <Screen>
-      <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 16, gap: 14 }}>
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: 20,
+          paddingTop: 14,
+          paddingBottom: 16,
+          gap: 14,
+        }}
+      >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <IconBtn icon="arrow-left" size={32} label={copy.a11y.back} onPress={() => router.back()} />
+          <IconBtn
+            icon="arrow-left"
+            size={32}
+            label={copy.a11y.back}
+            onPress={() => router.back()}
+          />
           <T size={16} weight="medium">
             {copy.importCalendar.title}
           </T>
@@ -183,7 +196,11 @@ export default function ImportCalendar() {
             <T size={13} color={t.neutral[400]} style={{ lineHeight: 19 }}>
               {copy.importCalendar.denied}
             </T>
-            <Btn label={copy.importCalendar.back} variant="primary" onPress={() => router.back()} />
+            <Btn
+              label={copy.importCalendar.back}
+              variant="primary"
+              onPress={() => router.back()}
+            />
           </View>
         ) : null}
 
@@ -198,7 +215,9 @@ export default function ImportCalendar() {
         {status === "ready" && !error ? (
           <View style={{ gap: 6 }}>
             <T size={11} color={t.neutral[500]}>
-              {accounts.length ? copy.importCalendar.accountsLabel : copy.importCalendar.noAccounts}
+              {accounts.length
+                ? copy.importCalendar.accountsLabel
+                : copy.importCalendar.noAccounts}
             </T>
             {accounts.length ? (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
@@ -216,7 +235,11 @@ export default function ImportCalendar() {
                       borderRadius: radius.pill,
                     }}
                   >
-                    <Icon name="calendar-blank" size={11} color={t.neutral[500]} />
+                    <Icon
+                      name="calendar-blank"
+                      size={11}
+                      color={t.neutral[500]}
+                    />
                     <T size={11} color={t.neutral[400]} numberOfLines={1}>
                       {a}
                     </T>
@@ -225,6 +248,46 @@ export default function ImportCalendar() {
               </View>
             ) : null}
           </View>
+        ) : null}
+
+        {/* Day picker. Sits above the empty state too, so a day with nothing on
+            it is still a day you can move off rather than a dead end. */}
+        {status === "ready" && !error ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 6, paddingVertical: 2 }}
+            style={{ flexGrow: 0, marginBottom: 10 }}
+          >
+            {days.map((d) => {
+              const on = d.offset === dayOffset;
+              return (
+                <Pressable
+                  key={d.dateKey}
+                  onPress={() => setDayOffset(d.offset)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  style={{
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderWidth: 1,
+                    borderColor: on ? t.accent : t.neutral[800],
+                    backgroundColor: on ? t.accentRamp[900] : "transparent",
+                    borderRadius: radius.pill,
+                  }}
+                >
+                  <T
+                    size={11}
+                    weight={on ? "medium" : "regular"}
+                    color={on ? t.accent : t.neutral[400]}
+                    numberOfLines={1}
+                  >
+                    {d.label}
+                  </T>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         ) : null}
 
         {status === "ready" && !error ? (
@@ -236,15 +299,22 @@ export default function ImportCalendar() {
               <T size={12} color={t.neutral[500]} style={{ lineHeight: 18 }}>
                 {copy.importCalendar.addAccount}
               </T>
-              <Btn label={copy.importCalendar.back} variant="primary" onPress={() => router.back()} />
+              <Btn
+                label={copy.importCalendar.back}
+                variant="primary"
+                onPress={() => router.back()}
+              />
             </View>
           ) : (
             <>
               <Kicker>{copy.importCalendar.listLabel}</Kicker>
-              <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 8 }}>
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ gap: 8 }}
+              >
                 {events.map((e) => (
                   <Card
-                    key={e.key}
+                    key={e.eventId}
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
@@ -254,7 +324,12 @@ export default function ImportCalendar() {
                       opacity: isExisting(e) ? 0.55 : 1,
                     }}
                   >
-                    <T size={11} tabular color={t.neutral[500]} style={{ width: 44 }}>
+                    <T
+                      size={11}
+                      tabular
+                      color={t.neutral[500]}
+                      style={{ width: 44 }}
+                    >
                       {fmtTime(e.min)}
                     </T>
                     <View style={{ flex: 1 }}>
@@ -262,16 +337,21 @@ export default function ImportCalendar() {
                         {e.title}
                       </T>
                       <T size={11} color={t.neutral[500]}>
-                        {isExisting(e) ? copy.importCalendar.alreadyAdded : e.calendarTitle}
+                        {isExisting(e)
+                          ? copy.importCalendar.alreadyAdded
+                          : e.calendarTitle}
                       </T>
                     </View>
                     <CheckCircleBtn
                       size={24}
-                      done={isExisting(e) || !!picked[e.key]}
+                      done={isExisting(e) || !!picked[e.eventId]}
                       label={e.title}
                       onPress={() => {
                         if (isExisting(e)) return;
-                        setPicked((p) => ({ ...p, [e.key]: !p[e.key] }));
+                        setPicked((p) => ({
+                          ...p,
+                          [e.eventId]: !p[e.eventId],
+                        }));
                       }}
                     />
                   </Card>
@@ -298,9 +378,13 @@ export default function ImportCalendar() {
         ) : null}
 
         {status === "unsupported" ? (
-          <Pressable onPress={() => router.back()} style={{ paddingVertical: 8 }}>
+          <Pressable
+            onPress={() => router.back()}
+            style={{ paddingVertical: 8 }}
+          >
             <T size={13} color={t.accentRamp[300]}>
-              <Icon name="arrow-left" size={12} color={t.accentRamp[300]} /> {copy.a11y.back}
+              <Icon name="arrow-left" size={12} color={t.accentRamp[300]} />{" "}
+              {copy.a11y.back}
             </T>
           </Pressable>
         ) : null}

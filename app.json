@@ -15,8 +15,8 @@
       "buildNumber": "9",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCalendarsUsageDescription": "Greyed Out reads your calendar so classes, shifts and appointments can appear on your day as blocks. Events are copied onto your device only and nothing is written back to your calendar.",
-        "NSCalendarsFullAccessUsageDescription": "Greyed Out reads your calendar so classes, shifts and appointments can appear on your day as blocks. Events are copied onto your device only and nothing is written back to your calendar.",
+        "NSCalendarsUsageDescription": "Greyed Out reads your calendar so classes, shifts and appointments can appear on your day as blocks, and can add your own blocks to a separate Greyed Out calendar if you turn that on. If you turn on calendar write-back, it also adds your own blocks to a separate Greyed Out calendar it creates. Your existing calendars are never changed, and nothing leaves your device.",
+        "NSCalendarsFullAccessUsageDescription": "Greyed Out reads your calendar so classes, shifts and appointments can appear on your day as blocks. If you turn on calendar write-back, it also adds your own blocks to a separate Greyed Out calendar it creates. Your existing calendars are never changed, and nothing leaves your device.",
         "NSRemindersUsageDescription": "Greyed Out reads calendar events only and never requests access to Reminders. iOS requires this entry because the calendar library checks for it when the app starts.",
         "NSRemindersFullAccessUsageDescription": "Greyed Out reads calendar events only and never requests access to Reminders. iOS requires this entry because the calendar library checks for it when the app starts."
       }

@@ -34,11 +34,12 @@
   <p>Everything you enter — tasks, your schedule, anchor times, meals and go-to foods, workout templates and logs, and your preferences — is saved only in your device's local storage. None of it is copied anywhere else, by us or by anyone else. Deleting the app deletes this data.</p>
 
   <h2>Calendar access</h2>
-  <p>If you choose to import events from your calendar, Greyed Out asks iOS for permission to read your calendar. This access is:</p>
+  <p>If you choose to import events from your calendar, Greyed Out asks iOS for permission to use your calendar. This access is:</p>
   <ul>
-    <li><strong>Read-only.</strong> The app never creates, edits, or deletes anything in your calendar.</li>
-    <li><strong>Local-only.</strong> Events you import are copied into the app's own local storage as schedule blocks. They are never transmitted anywhere.</li>
-    <li><strong>Optional.</strong> The app works fully without it. Denying or later revoking the permission (Settings → Greyed Out → Calendars) only disables the import feature.</li>
+    <li><strong>Local-only.</strong> Events you import are copied into the app's own local storage as schedule blocks, and anything the app writes goes through iOS to a calendar already on your device. Nothing is transmitted anywhere, and the app makes no network requests of any kind.</li>
+    <li><strong>Read-only unless you turn on write-back.</strong> By default the app only reads. If you switch on &ldquo;Put my day on my calendar&rdquo;, the app creates a separate calendar named <strong>Greyed Out</strong> and writes your own blocks into that one. It never creates, edits, or deletes anything in the calendars you already had.</li>
+    <li><strong>Reversible.</strong> Switching write-back off deletes the Greyed Out calendar and everything the app put in it. Your own calendars are untouched either way.</li>
+    <li><strong>Optional.</strong> The app works fully without it. Denying or later revoking the permission (Settings → Greyed Out → Calendars) only disables the calendar features.</li>
   </ul>
 
   <h2>No tracking, no analytics, no ads</h2>

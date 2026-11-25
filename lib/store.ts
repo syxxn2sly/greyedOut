@@ -3,8 +3,15 @@ import createContextHook from "@nkzw/create-context-hook";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState } from "react-native";
 
+import {
+  askCalendarAccess,
+  blocksForDay,
+  pushDayToCalendar,
+  removeAppCalendar,
+  syncImportedBlocks,
+} from "@/lib/calendar-sync";
 import { copy } from "@/lib/copy";
-import { hasNotifyPermission, syncNotifications } from "@/lib/notify";
+import { daySlots, hasNotifyPermission, syncNotifications } from "@/lib/notify";
 import type {
   Anchor,
   SafeFood,
@@ -68,6 +75,11 @@ type State = {
    * run that opens with a permission dialog is a first run people leave.
    */
   notify: boolean;
+  /**
+   * Write-back. Off until asked for, and it only ever touches a calendar the
+   * app made for itself, never one the user already had.
+   */
+  pushCal: boolean;
   weekPlan: WeekPlan;
   wTemplate: string;
   wSets: Record<string, number>;
@@ -125,6 +137,7 @@ const initial: State = {
   times: MIN,
   autoGym: true,
   notify: false,
+  pushCal: false,
   weekPlan: { mon: null, tue: null, wed: null, thu: null, fri: null, sat: null, sun: null },
   wTemplate: "push",
   wSets: {},
@@ -181,6 +194,12 @@ export const [StoreProvider, useStore] = createContextHook(() => {
   // tasks alone restored half the move and dropped the item entirely.
   const [undoPoint, setUndoPoint] = useState<{ tasks: Task[]; inbox: string[] } | null>(null);
 
+  // Read by the calendar sync, which runs on a timer-ish schedule (focus and
+  // foreground) rather than in render. Going through a ref keeps the sync
+  // callback stable, so adding a block doesn't re-arm the launch effect.
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
   const toastT = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nudgeLevel = useRef(0);
   const lastNudgeAt = useRef(0);
@@ -215,24 +234,6 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     })();
   }, []);
 
-  // Hydration only runs on cold launch. If you background the app overnight
-  // iOS keeps the JS context alive and the day never rolls — you come back to
-  // yesterday's water count. Re-check on foreground.
-  useEffect(() => {
-    if (!hydrated) return;
-    const sub = AppState.addEventListener("change", (next) => {
-      if (next !== "active") return;
-      setState((s) => (s.dayKey === todayKey() ? s : rollDay(s)));
-
-      // They can also turn reminders off in Settings and we never hear about
-      // it, so the toggle would keep claiming to be on.
-      hasNotifyPermission().then((granted) => {
-        if (!granted) setState((s) => (s.notify ? { ...s, notify: false } : s));
-      });
-    });
-    return () => sub.remove();
-  }, [hydrated]);
-
   useEffect(() => {
     if (!hydrated) return;
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
@@ -259,6 +260,100 @@ export const [StoreProvider, useStore] = createContextHook(() => {
   useEffect(() => () => {
     if (toastT.current) clearTimeout(toastT.current);
   }, []);
+
+  /**
+   * Pull imported blocks back in line with the calendar they came from, and
+   * drop the ones whose event is gone or whose day has passed.
+   *
+   * Only speaks up when something actually changed. A sync runs every time the
+   * app comes forward, and a toast on every launch is noise that trains people
+   * to ignore the one that matters.
+   */
+  const runCalendarSync = useCallback(async () => {
+    const today = todayKey();
+    const current = stateRef.current.customBlocks;
+    const { blocks, moved, dropped } = await syncImportedBlocks(current, today);
+    if (!moved && !dropped) return;
+    update({ customBlocks: blocks });
+    if (dropped) cheer(copy.importCalendar.syncedDropped(dropped));
+    else cheer(copy.importCalendar.syncedMoved(moved));
+  }, [update, cheer]);
+
+  // Hydration only runs on cold launch. If you background the app overnight
+  // iOS keeps the JS context alive and the day never rolls — you come back to
+  // yesterday's water count. Re-check on foreground.
+  useEffect(() => {
+    if (!hydrated) return;
+    const sub = AppState.addEventListener("change", (next) => {
+      if (next !== "active") return;
+      setState((s) => (s.dayKey === todayKey() ? s : rollDay(s)));
+
+      // They can also turn reminders off in Settings and we never hear about
+      // it, so the toggle would keep claiming to be on.
+      hasNotifyPermission().then((granted) => {
+        if (!granted) setState((s) => (s.notify ? { ...s, notify: false } : s));
+      });
+
+      // The calendar is the other thing that moves while the app is away: a
+      // meeting gets pushed an hour in Outlook and the block here would sit at
+      // the old time until the next manual import.
+      runCalendarSync();
+    });
+    return () => sub.remove();
+  }, [hydrated, runCalendarSync]);
+
+  // And once on cold launch, for the same reason.
+  useEffect(() => {
+    if (hydrated) runCalendarSync();
+  }, [hydrated, runCalendarSync]);
+
+  /**
+   * Write today's own blocks out to the app's calendar.
+   *
+   * Imported blocks are skipped: they came from a calendar already, and
+   * writing them back is how every meeting ends up listed twice.
+   */
+  const pushDay = useCallback(async () => {
+    const s = stateRef.current;
+    if (!s.pushCal) return 0;
+    const today = todayKey();
+    const mine = blocksForDay(s.customBlocks, today).filter((b) => !b.source);
+    const items = daySlots(s.times, mine)
+      .filter((slot) => Number.isFinite(slot.min) && slot.min >= 0 && slot.min < 24 * 60)
+      .map((slot, i) => ({ key: `p${i}`, title: slot.title, min: slot.min }));
+    const { written } = await pushDayToCalendar(today, items);
+    return written;
+  }, []);
+
+  const setPushCalendar = useCallback(
+    async (on: boolean) => {
+      if (!on) {
+        update({ pushCal: false });
+        stateRef.current = { ...stateRef.current, pushCal: false };
+        await removeAppCalendar();
+        cheer(copy.importCalendar.pushOff);
+        return false;
+      }
+      if (!(await askCalendarAccess())) {
+        cheer(copy.importCalendar.pushFailed);
+        return false;
+      }
+      update({ pushCal: true });
+      // pushDay reads through the ref, which has not seen that patch yet.
+      stateRef.current = { ...stateRef.current, pushCal: true };
+      const written = await pushDay();
+      cheer(written ? copy.importCalendar.pushed(written) : copy.importCalendar.pushFailed);
+      return written > 0;
+    },
+    [update, cheer, pushDay],
+  );
+
+  // Keep the written copy in step with the day it was written from. Narrow
+  // deps on purpose, same as the notification effect.
+  useEffect(() => {
+    if (!hydrated || !state.pushCal) return;
+    pushDay();
+  }, [hydrated, state.pushCal, state.times, state.customBlocks, pushDay]);
 
   /**
    * The nudge escalates over three messages and then goes quiet, which is the
@@ -318,7 +413,7 @@ export const [StoreProvider, useStore] = createContextHook(() => {
       update({ tasks: state.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) });
       if (!was) cheer();
     },
-    [state.tasks, update, cheer],
+    [state.tasks, state.inbox, update, cheer],
   );
 
   const eraseTask = useCallback(
@@ -327,7 +422,7 @@ export const [StoreProvider, useStore] = createContextHook(() => {
       update({ tasks: state.tasks.filter((t) => t.id !== id) });
       cheer(copy.toast.taskErased);
     },
-    [state.tasks, update, cheer],
+    [state.tasks, state.inbox, update, cheer],
   );
 
   const bumpTask = useCallback(
@@ -360,7 +455,7 @@ export const [StoreProvider, useStore] = createContextHook(() => {
       });
       cheer(copy.toast.taskAdded);
     },
-    [state.tasks, update, cheer],
+    [state.tasks, state.inbox, update, cheer],
   );
 
   const undoTasks = useCallback(() => {
@@ -524,8 +619,16 @@ export const [StoreProvider, useStore] = createContextHook(() => {
       armNudge,
       dismissNudge,
       applyNudge,
+      /**
+       * The blocks that belong on today. Undated ones repeat daily; imported
+       * ones only show on the day their event falls on. Screens render this
+       * rather than customBlocks, which is now the whole multi-day store.
+       */
+      todayBlocks: blocksForDay(state.customBlocks, state.dayKey),
       canUndo: undoPoint !== null,
       undoTasks,
+      setPushCalendar,
+      runCalendarSync,
       update,
       toggleTask,
       eraseTask,
@@ -549,7 +652,8 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     }),
     [
       state, hydrated, toast, cheer, nudge, armNudge, dismissNudge, applyNudge,
-      undoPoint, undoTasks, update, toggleTask, eraseTask, bumpTask, splitTask,
+      undoPoint, undoTasks, setPushCalendar, runCalendarSync,
+      update, toggleTask, eraseTask, bumpTask, splitTask,
       addTask, completeTask, toggleAnchor, logFood, addMeal, removeMeal,
       addSafeFood, removeSafeFood,
       addWater, removeWater, logWorkout, toInbox, promoteFromInbox,

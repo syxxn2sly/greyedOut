@@ -110,7 +110,7 @@ export default function EditDay() {
 
           {/* Your own blocks get the same nudge controls as the anchors —
               a block you cannot move is a block you stop trusting. */}
-          {s.customBlocks.map((c) => (
+          {s.todayBlocks.map((c) => (
             <Card
               key={c.id}
               style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 13 }}
@@ -239,6 +239,47 @@ export default function EditDay() {
                   height: 19,
                   borderRadius: radius.pill,
                   backgroundColor: s.notify ? t.accentRamp[300] : t.neutral[600],
+                }}
+              />
+            </Pressable>
+          </Card>
+
+          {/* Write-back. A separate switch from reminders on purpose: one is
+              the app talking to you, the other is the app putting entries in a
+              calendar other people may be looking at. */}
+          <Card style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 13 }}>
+            <Icon name="calendar-plus" size={18} color={s.pushCal ? t.accent : t.neutral[500]} />
+            <View style={{ flex: 1 }}>
+              <T size={13.5} weight="medium">
+                {copy.importCalendar.pushLabel}
+              </T>
+              <T size={11} color={t.neutral[500]} style={{ lineHeight: 16 }}>
+                {copy.importCalendar.pushSub}
+              </T>
+            </View>
+            <Pressable
+              onPress={() => s.setPushCalendar(!s.pushCal)}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: s.pushCal }}
+              accessibilityLabel={copy.importCalendar.pushLabel}
+              style={{
+                width: 46,
+                height: 27,
+                borderRadius: radius.pill,
+                borderWidth: 1,
+                borderColor: s.pushCal ? t.accentRamp[600] : t.neutral[700],
+                backgroundColor: s.pushCal ? t.accentRamp[800] : "transparent",
+                justifyContent: "center",
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  left: s.pushCal ? 23 : 3,
+                  width: 19,
+                  height: 19,
+                  borderRadius: radius.pill,
+                  backgroundColor: s.pushCal ? t.accentRamp[300] : t.neutral[600],
                 }}
               />
             </Pressable>

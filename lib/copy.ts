@@ -10,7 +10,8 @@ export const copy = {
   setup: {
     kicker: "First run · 20 seconds",
     title: "When does your day happen?",
-    intro: "Everything else builds around these times, and you can change them later.",
+    intro:
+      "Everything else builds around these times, and you can change them later.",
     rows: {
       wake: { label: "Wake", sub: "everything counts from here" },
       meds: { label: "Meds + breakfast", sub: "the peak window starts here" },
@@ -148,7 +149,11 @@ export const copy = {
     mode: "mode",
     addPlaceholder: "+ add",
     water: (count: number) => `water: ${count}`,
-    food: { none: "food: none yet", skipped: "food: skipped", handled: "food: handled" },
+    food: {
+      none: "food: none yet",
+      skipped: "food: skipped",
+      handled: "food: handled",
+    },
     ate: "ate",
   },
 
@@ -215,14 +220,16 @@ export const copy = {
   // ── schedule ────────────────────────────────────────────────────────────
   schedule: {
     title: "Schedule",
-    progress: (held: number, total: number) => `${held} of ${total} held · dashed = suggestions`,
+    progress: (held: number, total: number) =>
+      `${held} of ${total} held · dashed = suggestions`,
     editDay: "Edit day",
     statTasks: "Tasks",
     statBlocks: "Blocks held",
     statWorkout: "Workout",
     workoutDone: "Done ✓",
     workoutMini: "10-min ✓",
-    medsNote: (from: string, to: string) => `Meds peak ${from} to ${to}, so hard work sits there.`,
+    medsNote: (from: string, to: string) =>
+      `Meds peak ${from} to ${to}, so hard work sits there.`,
     now: "now",
     suggestionTag: "suggestion",
     addedTag: "added ×",
@@ -235,10 +242,15 @@ export const copy = {
         title: (task: string) => `Deep work · ${task}`,
         sub: (from: string, to: string) => `meds peak ${from} to ${to}`,
       },
-      break: { title: "Water + move for 5", sub: "break, not a reward", tag: "hide" },
+      break: {
+        title: "Water + move for 5",
+        sub: "break, not a reward",
+        tag: "hide",
+      },
       light: {
         title: (tasks: string) => `Small stuff · ${tasks}`,
-        sub: (count: number) => `${count === 1 ? "a quick win" : "two quick wins"} before lunch`,
+        sub: (count: number) =>
+          `${count === 1 ? "a quick win" : "two quick wins"} before lunch`,
       },
       lunch: { title: "Lunch", sub: "anchor · go-tos loaded" },
       gym: { sub: "10-min version still counts" },
@@ -258,9 +270,16 @@ export const copy = {
     intro: "Everything else moves around these anchors.",
     rows: {
       wake: { label: "Wake", sub: "anchor · everything counts from here" },
-      meds: { label: "Meds + breakfast", sub: "work blocks follow the peak window" },
+      meds: {
+        label: "Meds + breakfast",
+        sub: "work blocks follow the peak window",
+      },
       lunch: { label: "Lunch", sub: "anchor · food check-in happens here" },
-      gym: { label: "Workout slot", subAuto: "auto · adjust anytime", subManual: "manual" },
+      gym: {
+        label: "Workout slot",
+        subAuto: "auto · adjust anytime",
+        subManual: "manual",
+      },
       wind: { label: "Wind-down", sub: "anchor · drift alerts use this" },
     },
     yourBlockSub: (sub: string) => `${sub} · remove with ×`,
@@ -271,18 +290,21 @@ export const copy = {
     autoGymSub: "Off means you pick the time.",
     notify: "Remind me",
     notifySub: "A quiet notification at each time above.",
-    notifyDenied: "Notifications are off for the app, turn them on in Settings › Greyed Out.",
+    notifyDenied:
+      "Notifications are off for the app, turn them on in Settings › Greyed Out.",
     done: "Rebuild my day",
   },
 
   // ── calendar import ─────────────────────────────────────────────────────
   importCalendar: {
     title: "Import from calendar",
-    loading: "Reading today's events…",
+    loading: "Reading your calendar…",
     unsupported: "Calendar access only works on your phone.",
-    denied: "Calendar access is off, turn it on in Settings › Greyed Out › Calendars.",
+    denied:
+      "Calendar access is off, turn it on in Settings › Greyed Out › Calendars.",
     error: "Could not read the calendar.",
-    empty: "Nothing timed on your calendar today, all-day events are skipped.",
+    empty:
+      "Nothing timed on your calendar for this day, all-day events are skipped.",
 
     /**
      * iOS hands the app every calendar the phone syncs, whichever service it
@@ -295,13 +317,43 @@ export const copy = {
     noAccounts: "No calendar accounts on this phone yet.",
     addAccount:
       "Google, Outlook and iCloud calendars all land here once the account is added to the phone, in the Settings app under Apps › Calendar › Accounts.",
-    listLabel: "today's events · untick what you don't want",
+    listLabel: "untick what you don't want",
     alreadyAdded: "already on your day",
     fromCalendar: (name: string) => `from ${name}`,
     untitledEvent: "untitled event",
     nothingSelected: "Nothing selected",
     addBlocks: (n: number) => `Add ${n} ${n === 1 ? "block" : "blocks"}`,
-    readOnlyNote: "Nothing is written back to your calendar.",
+    readOnlyNote:
+      "Imported blocks follow the event, so moving or cancelling it updates your day.",
+
+    /**
+     * Day picker. Import used to read today and only today, which made every
+     * imported block a permanent fixture at that time of day. Pinning a block
+     * to its date is what lets tomorrow's dentist appointment stay on
+     * tomorrow instead of turning up every morning afterwards.
+     */
+    dayToday: "Today",
+    dayTomorrow: "Tomorrow",
+    dayLabel: (d: string) => d,
+    pickDay: "which day",
+
+    syncedMoved: (n: number) =>
+      `${n} ${n === 1 ? "block" : "blocks"} moved with your calendar.`,
+    syncedDropped: (n: number) =>
+      `${n} ${n === 1 ? "block" : "blocks"} came off, the event is gone.`,
+
+    /** Written into every event the app creates, so it is obvious in Outlook
+     *  or Google where the entry came from and that deleting it is safe. */
+    pushedNote:
+      "Added by Greyed Out. Delete it any time, your day is unaffected.",
+
+    pushLabel: "Put my day on my calendar",
+    pushSub:
+      "Writes to a separate Greyed Out calendar. Your own calendars are never touched.",
+    pushed: (n: number) =>
+      `${n} ${n === 1 ? "block" : "blocks"} written to your calendar.`,
+    pushOff: "Removed the Greyed Out calendar.",
+    pushFailed: "Could not write to the calendar.",
     back: "Back to Edit day",
   },
 
@@ -347,11 +399,19 @@ export const copy = {
     from: "navigator · now",
     later: "later",
     water: {
-      messages: ["water's at zero.", "still zero water.", "last ask about water."],
+      messages: [
+        "water's at zero.",
+        "still zero water.",
+        "last ask about water.",
+      ],
       action: "logged +1",
     },
     food: {
-      messages: ["nothing eaten yet.", "still nothing eaten.", "last ask about food."],
+      messages: [
+        "nothing eaten yet.",
+        "still nothing eaten.",
+        "last ask about food.",
+      ],
       action: "ate something",
     },
   },
@@ -393,8 +453,10 @@ export const copy = {
     focusBailed: "You started, that counts.",
     crisisAte: "That's the big one.",
     crisisAnchor: "Anchor held.",
-    imported: (n: number) => `${n} ${n === 1 ? "event" : "events"} on the timeline.`,
-    remindersSet: (n: number) => `${n} ${n === 1 ? "reminder" : "reminders"} set.`,
+    imported: (n: number) =>
+      `${n} ${n === 1 ? "event" : "events"} on the timeline.`,
+    remindersSet: (n: number) =>
+      `${n} ${n === 1 ? "reminder" : "reminders"} set.`,
     remindersOff: "Reminders off.",
   },
 

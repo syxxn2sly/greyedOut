@@ -75,6 +75,19 @@ export type ExStat = {
   reps: number | null;
 };
 
+/**
+ * Where an imported block came from. Keeping the event id is what makes a
+ * re-read a sync rather than a second import: without it the only way to
+ * match a block to its event is title plus time, which is exactly the pair
+ * that changes when a meeting moves.
+ */
+export type BlockSource = {
+  eventId: string;
+  calendarId: string;
+  /** YYYY-MM-DD the event sits on. */
+  dateKey: string;
+};
+
 export type CustomBlock = {
   id: string;
   min: number;
@@ -82,6 +95,13 @@ export type CustomBlock = {
   sub: string;
   icon: IconName;
   kind: BlockKind;
+  /**
+   * Set on imported blocks only. A block without it repeats every day, which
+   * is what you want for a workout slot and wrong for a dentist appointment.
+   */
+  source?: BlockSource;
+  /** Event this block was written out to, when calendar write-back is on. */
+  pushedId?: string;
 };
 
 export type BlockKind = "anchor" | "school" | "work" | "care";

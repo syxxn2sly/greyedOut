@@ -42,7 +42,7 @@ export default function Schedule() {
     times: s.times,
     energy: s.energy,
     workoutDone: s.workoutDone,
-    customBlocks: s.customBlocks,
+    customBlocks: s.todayBlocks,
     hiddenBlocks: s.hiddenBlocks,
     tasks: s.tasks,
   });
