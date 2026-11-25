@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 
 import { Icon } from "@/components/icon";
@@ -27,6 +27,17 @@ export default function Capture() {
     setFiledTo(s.fileCapture(pending, dueSoon, severity));
     setStep("done");
   };
+
+  /**
+   * The only delete in the app that cannot be re-tapped back into existence.
+   * Capture is where you put things so you stop holding them, so losing one
+   * to a mis-tap costs more here than the extra tap costs.
+   */
+  const confirmDrop = (item: string, index: number) =>
+    Alert.alert(copy.capture.dropTitle, copy.capture.dropBody(item), [
+      { text: copy.capture.dropCancel, style: "cancel" },
+      { text: copy.capture.dropConfirm, style: "destructive", onPress: () => s.removeFromInbox(index) },
+    ]);
 
   return (
     <Screen>
@@ -105,7 +116,7 @@ export default function Capture() {
                         onPress={() => s.promoteFromInbox(i)}
                       />
                       <Pressable
-                        onPress={() => s.removeFromInbox(i)}
+                        onPress={() => confirmDrop(item, i)}
                         accessibilityRole="button"
                         accessibilityLabel={copy.a11y.drop(item)}
                         hitSlop={6}

@@ -191,6 +191,11 @@ export const copy = {
     filedTodaySub: "It's in the Next 3 line.",
     filedLaterSub: "It's in the later pile, pull it up whenever.",
     backToToday: "Back to Today",
+
+    dropTitle: "Drop this?",
+    dropBody: (item: string) => `"${item}" goes away for good.`,
+    dropCancel: "Keep it",
+    dropConfirm: "Drop it",
   },
 
   // ── focus timer ─────────────────────────────────────────────────────────

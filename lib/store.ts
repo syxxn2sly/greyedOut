@@ -176,7 +176,10 @@ export const [StoreProvider, useStore] = createContextHook(() => {
   const [hydrated, setHydrated] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [nudge, setNudge] = useState<Nudge | null>(null);
-  const [prevTasks, setPrevTasks] = useState<Task[] | null>(null);
+  // One undo slot, and it holds both lists rather than just tasks. Promoting
+  // something out of the inbox moves it between the two, so a snapshot of
+  // tasks alone restored half the move and dropped the item entirely.
+  const [undoPoint, setUndoPoint] = useState<{ tasks: Task[]; inbox: string[] } | null>(null);
 
   const toastT = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nudgeLevel = useRef(0);
@@ -310,7 +313,7 @@ export const [StoreProvider, useStore] = createContextHook(() => {
 
   const toggleTask = useCallback(
     (id: string) => {
-      setPrevTasks(state.tasks);
+      setUndoPoint({ tasks: state.tasks, inbox: state.inbox });
       const was = state.tasks.find((t) => t.id === id)?.done;
       update({ tasks: state.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) });
       if (!was) cheer();
@@ -320,7 +323,7 @@ export const [StoreProvider, useStore] = createContextHook(() => {
 
   const eraseTask = useCallback(
     (id: string) => {
-      setPrevTasks(state.tasks);
+      setUndoPoint({ tasks: state.tasks, inbox: state.inbox });
       update({ tasks: state.tasks.filter((t) => t.id !== id) });
       cheer(copy.toast.taskErased);
     },
@@ -351,7 +354,7 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     (title: string, meta: string = copy.meta.addedByYou) => {
       const clean = title.trim();
       if (!clean) return;
-      setPrevTasks(state.tasks);
+      setUndoPoint({ tasks: state.tasks, inbox: state.inbox });
       update({
         tasks: [...state.tasks, { id: `t${Date.now()}`, title: clean, meta, done: false }],
       });
@@ -361,10 +364,10 @@ export const [StoreProvider, useStore] = createContextHook(() => {
   );
 
   const undoTasks = useCallback(() => {
-    if (!prevTasks) return;
-    update({ tasks: prevTasks });
-    setPrevTasks(null);
-  }, [prevTasks, update]);
+    if (!undoPoint) return;
+    update({ tasks: undoPoint.tasks, inbox: undoPoint.inbox });
+    setUndoPoint(null);
+  }, [undoPoint, update]);
 
   const completeTask = useCallback(
     (id: string) => update((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: true } : t)) })),
@@ -473,9 +476,12 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     (index: number) => {
       const title = state.inbox[index];
       if (!title) return;
-      update((s) => ({ inbox: s.inbox.filter((_, i) => i !== index) }));
-      setPrevTasks(state.tasks);
+      // Snapshot before either list moves, and write both halves in one pass.
+      // Two updates with the snapshot in between left undo able to restore the
+      // task list but not the inbox entry, so undoing a promote lost the item.
+      setUndoPoint({ tasks: state.tasks, inbox: state.inbox });
       update((s) => ({
+        inbox: s.inbox.filter((_, i) => i !== index),
         tasks: [...s.tasks, { id: `t${Date.now()}`, title, meta: copy.meta.pulledUp, done: false }],
       }));
       cheer(copy.toast.pulledUp);
@@ -483,9 +489,14 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     [state.inbox, state.tasks, update, cheer],
   );
 
+  // Dropping something from the inbox is the one delete with nothing behind
+  // it, so take an undo point first. The screen confirms before calling this.
   const removeFromInbox = useCallback(
-    (index: number) => update((s) => ({ inbox: s.inbox.filter((_, i) => i !== index) })),
-    [update],
+    (index: number) => {
+      setUndoPoint({ tasks: state.tasks, inbox: state.inbox });
+      update((s) => ({ inbox: s.inbox.filter((_, i) => i !== index) }));
+    },
+    [state.tasks, state.inbox, update],
   );
 
   /**
@@ -513,7 +524,7 @@ export const [StoreProvider, useStore] = createContextHook(() => {
       armNudge,
       dismissNudge,
       applyNudge,
-      canUndo: prevTasks !== null,
+      canUndo: undoPoint !== null,
       undoTasks,
       update,
       toggleTask,
@@ -538,7 +549,7 @@ export const [StoreProvider, useStore] = createContextHook(() => {
     }),
     [
       state, hydrated, toast, cheer, nudge, armNudge, dismissNudge, applyNudge,
-      prevTasks, undoTasks, update, toggleTask, eraseTask, bumpTask, splitTask,
+      undoPoint, undoTasks, update, toggleTask, eraseTask, bumpTask, splitTask,
       addTask, completeTask, toggleAnchor, logFood, addMeal, removeMeal,
       addSafeFood, removeSafeFood,
       addWater, removeWater, logWorkout, toInbox, promoteFromInbox,
