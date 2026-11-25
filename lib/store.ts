@@ -6,6 +6,7 @@ import { AppState } from "react-native";
 import {
   askCalendarAccess,
   blocksForDay,
+  dateKeyOf,
   pushDayToCalendar,
   removeAppCalendar,
   syncImportedBlocks,
@@ -103,11 +104,10 @@ export const anchorLabel = (id: Anchor["id"], times: AnchorTimes) =>
       ? copy.home.anchor.lunch
       : copy.home.anchor.wind(fmtTime(times.wind));
 
-const todayKey = () => {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-};
+// Shared with the calendar sync, which compares these keys as plain strings.
+// Two copies of the format is two chances for them to drift, and a drift here
+// reads as "every imported block belongs to a day that isn't today".
+const todayKey = () => dateKeyOf(new Date());
 
 const initial: State = {
   dayKey: todayKey(),

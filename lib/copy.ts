@@ -458,6 +458,7 @@ export const copy = {
     remindersSet: (n: number) =>
       `${n} ${n === 1 ? "reminder" : "reminders"} set.`,
     remindersOff: "Reminders off.",
+    remindersFailed: "iOS would not take the reminders, so the switch stayed off.",
   },
 
   /** The three ways a task gets shrunk when it is too big to start. */

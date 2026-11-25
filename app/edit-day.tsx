@@ -212,11 +212,16 @@ export default function EditDay() {
                   s.cheer(copy.editDay.notifyDenied);
                   return;
                 }
+                // Say how many landed, and say so only if they did. The
+                // switch stays off when iOS took nothing, because a switch
+                // that is on while nothing is scheduled is the worst of both.
+                const r = await syncNotifications(true, s.times, s.customBlocks);
+                if (!r.ok) {
+                  s.cheer(copy.toast.remindersFailed);
+                  return;
+                }
                 s.update({ notify: true });
-                // Say how many landed. Turning a switch on and being told
-                // nothing is how you end up unsure whether it worked.
-                const n = await syncNotifications(true, s.times, s.customBlocks);
-                s.cheer(copy.toast.remindersSet(n));
+                s.cheer(copy.toast.remindersSet(r.count));
               }}
               accessibilityRole="switch"
               accessibilityState={{ checked: s.notify }}

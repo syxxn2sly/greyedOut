@@ -88,18 +88,28 @@ export async function hasNotifyPermission(): Promise<boolean> {
   }
 }
 
-// Just wipe and rebuild. Diffing against what iOS holds isn't worth it
-// for five items.
+/**
+ * Wipe and rebuild. Diffing against what iOS holds isn't worth it for five
+ * items.
+ *
+ * `ok` is separate from `count` on purpose. This used to return a bare number
+ * and every failure path returned 0, so a scheduling error and a day with
+ * nothing to schedule were the same answer — the switch went on, the toast
+ * said "0 reminders set", and nothing ever fired. The caller needs to be able
+ * to tell "none to set" from "could not set them".
+ */
+export type NotifyResult = { ok: boolean; count: number };
+
 export async function syncNotifications(
   enabled: boolean,
   times: AnchorTimes,
   blocks: CustomBlock[],
-): Promise<number> {
-  if (!canNotify) return 0;
+): Promise<NotifyResult> {
+  if (!canNotify) return { ok: false, count: 0 };
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
-    if (!enabled) return 0;
-    if (!(await hasNotifyPermission())) return 0;
+    if (!enabled) return { ok: true, count: 0 };
+    if (!(await hasNotifyPermission())) return { ok: false, count: 0 };
 
     const now = Date.now();
     const slots = [...anchorSlots(times), ...blockSlots(blocks)]
@@ -124,10 +134,15 @@ export async function syncNotifications(
             },
       });
     }
-    return slots.length;
+    // Ask iOS what it actually holds rather than trusting the loop. A
+    // scheduleNotificationAsync that resolves is not a promise that anything
+    // was accepted, and the 64-pending cap is enforced on their side.
+    const pending = await Notifications.getAllScheduledNotificationsAsync();
+    return { ok: pending.length > 0 || slots.length === 0, count: pending.length };
   } catch {
-    // Not worth blowing up the app over. Worst case it's quieter than asked.
-    return 0;
+    // Not worth blowing up the app over, but the caller is told it failed so
+    // it can say so instead of claiming zero reminders were wanted.
+    return { ok: false, count: 0 };
   }
 }
 
